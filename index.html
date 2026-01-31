@@ -521,7 +521,7 @@
     <div id="pageAdmin" class="page">
       <div class="top-bar">
         <h2>账户管理</h2>
-        <button type="button" class="btn" id="btnBackFromAdmin">返回</button>
+        <button type="button" class="btn" id="btnBackFromAdmin" onclick="if(window.goBackToHome)window.goBackToHome()">返回</button>
       </div>
       <p class="login-gate-tip" style="margin-bottom:12px;">仅管理员 Entelch 可操作。可修改密码、删除账户或拉入黑名单（冻结后需管理员取消黑名单才能登录）。</p>
       <div id="adminAccountList"></div>
@@ -650,9 +650,15 @@
         else listEl.innerHTML='<p class="login-gate-tip">暂无账户</p>';
       }
     }
+    function goBackToHome(){
+      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+      var home=document.getElementById('pageHome');
+      if(home) home.classList.add('active');
+    }
     window.openAccountModal=openAccountModal;
     window.doLogout=doLogout;
     window.openAdminPage=openAdminPage;
+    window.goBackToHome=goBackToHome;
     document.addEventListener('DOMContentLoaded',function(){
       var logoutBtn=document.getElementById('accountModalLogout');
       var closeBtn=document.getElementById('modalAccountClose');
