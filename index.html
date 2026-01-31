@@ -234,13 +234,34 @@
     <!-- 登录门：未登录时只显示此页，登录/注册成功后进入主页 -->
     <div id="pageLoginGate" class="page active">
       <div class="login-gate-box">
+        <script>
+        (function(){
+          function gateRegCheck(){
+            var u=document.getElementById('gateRegUsername');
+            var p=document.getElementById('gateRegPassword');
+            var c=document.getElementById('gateRegPasswordConfirm');
+            var b=document.getElementById('gateBtnRegister');
+            if(!u||!p||!c||!b) return;
+            var ok=(u.value||'').trim()&&(p.value||'').trim()&&p.value===c.value;
+            b.disabled=!ok;
+          }
+          document.addEventListener('DOMContentLoaded',function(){
+            var u=document.getElementById('gateRegUsername');
+            var p=document.getElementById('gateRegPassword');
+            var c=document.getElementById('gateRegPasswordConfirm');
+            if(u){ u.addEventListener('input',gateRegCheck); }
+            if(p){ p.addEventListener('input',gateRegCheck); }
+            if(c){ c.addEventListener('input',gateRegCheck); }
+          });
+        })();
+        </script>
         <h2>机电一体化英文学习</h2>
         <p class="login-gate-tip">请先登录或注册后再进行学习</p>
         <div id="gateLoginForm">
           <input type="text" id="gateUsername" placeholder="账号">
           <input type="password" id="gatePassword" placeholder="密码">
           <button type="button" class="btn" id="gateBtnLogin">登录</button>
-          <button type="button" class="btn" id="gateBtnShowRegister">注册</button>
+          <button type="button" class="btn" id="gateBtnShowRegister" onclick="var f=document.getElementById('gateLoginForm'); var r=document.getElementById('gateRegisterForm'); if(f&&r){ f.classList.add('hide'); r.classList.remove('hide'); document.getElementById('gateRegUsername').value=''; document.getElementById('gateRegPassword').value=''; document.getElementById('gateRegPasswordConfirm').value=''; var btn=document.getElementById('gateBtnRegister'); if(btn) btn.disabled=true; }">注册</button>
         </div>
         <div id="gateRegisterForm" class="hide">
           <p class="login-gate-tip" style="margin-bottom:16px;">填写账号、密码与确认密码，两遍密码一致后可点击注册</p>
@@ -248,7 +269,7 @@
           <input type="password" id="gateRegPassword" placeholder="密码">
           <input type="password" id="gateRegPasswordConfirm" placeholder="确认密码">
           <button type="button" class="btn" id="gateBtnRegister" disabled>注册</button>
-          <button type="button" class="btn" id="gateBtnShowLogin">返回登录</button>
+          <button type="button" class="btn" id="gateBtnShowLogin" onclick="var f=document.getElementById('gateLoginForm'); var r=document.getElementById('gateRegisterForm'); if(f&&r){ r.classList.add('hide'); f.classList.remove('hide'); }">返回登录</button>
         </div>
       </div>
     </div>
