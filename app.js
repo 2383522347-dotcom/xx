@@ -173,7 +173,7 @@
     if (!el) return;
     if (SYNC_API_URL) {
       var origin = typeof window !== "undefined" && window.location && window.location.origin ? window.location.origin : "";
-      el.textContent = "当前同步地址：" + origin + "。电脑与手机必须使用同一链接登录，否则账号不同步。";
+      el.innerHTML = "当前同步地址：<strong>" + origin + "</strong><br>在电脑注册的账号，手机必须打开「同一链接」才能登录。若使用 Vercel 部署，需在项目设置中配置 Upstash Redis，否则账号无法跨设备保存。";
       el.style.display = "";
     } else {
       el.style.display = "none";
@@ -293,6 +293,35 @@
   function setAccounts(o) { setJSON(KEY.accounts, o); }
   function getBlacklist() { return getJSON(KEY.blacklist, []); }
   function setBlacklist(arr) { setJSON(KEY.blacklist, Array.isArray(arr) ? arr : []); }
+
+  // 登出时清空全局用户状态，避免切账号后商城金币等仍显示上一账号数据
+  function clearUserState() {
+    setNum(KEY.signInDays, 0);
+    setStr(KEY.lastSignIn, "");
+    setNum(KEY.studyMsToday, 0);
+    setStr(KEY.studyDate, todayStr());
+    setNum(KEY.coins, 0);
+    setJSON(KEY.learnedWords, []);
+    setStr(KEY.vocabLevel, "");
+    setNum(KEY.vocabLevelIndex, 0);
+    setNum(KEY.forgetReviewDays, 0);
+    setNum(KEY.learnedCount, 0);
+    setNum(KEY.wordLearnCount, 0);
+    currentWordList = [];
+    currentWordIndex = 0;
+    currentBookName = "";
+    testQuestions = [];
+    testQi = 0;
+    testResults = [];
+    wordTestBookName = "";
+    vocabTestQi = 0;
+    vocabTestAnswers = [];
+    scenarioCategory = "";
+    scenarioItem = null;
+    currentReadingArticle = null;
+    currentReadingLevel = "";
+    currentReadingQuizQuestions = [];
+  }
 
   function buildUserData() {
     var mp = {};
@@ -1042,6 +1071,7 @@
   document.getElementById("modalAccountClose").onclick = function() { document.getElementById("modalAccount").classList.add("hide"); };
   document.getElementById("accountModalLogout").onclick = function() {
     syncToAccount();
+    clearUserState();
     setAccount({});
     if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "none";
     document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
@@ -1156,7 +1186,15 @@
     if (getBlacklist().indexOf(user) >= 0) { alert("已经冻结"); return; }
     if (SYNC_API_URL) {
       loginViaServer(user, pwd, function(ok, data, errMsg) {
-        if (!ok) { alert(errMsg || "登录失败"); return; }
+        if (!ok) {
+          var msg = errMsg || "登录失败";
+          if (msg === "账号不存在") {
+            msg = "账号不存在。若您在电脑/其他设备已注册，请确认：1) 手机打开的是同一链接（见下方「当前同步地址」）；2) 若使用 Vercel 部署，需在项目设置中配置 Upstash Redis 并重新部署。";
+          }
+          alert(msg);
+          return;
+        }
+        clearUserState();
         setAccount({ username: user, password: pwd });
         applyUserData(data || {});
         if (Object.keys(data || {}).length === 0) syncFromAccount();
@@ -1170,6 +1208,7 @@
       const accounts = getAccounts();
       if (!accounts[user]) { alert("登录失败"); return; }
       if (accounts[user] !== pwd) { alert("密码错误"); return; }
+      clearUserState();
       setAccount({ username: user, password: pwd });
       syncFromAccount();
       refreshHeader();
@@ -1196,6 +1235,7 @@
     if (SYNC_API_URL) {
       registerViaServer(user, pwd, function(ok, errMsg) {
         if (!ok) { alert(errMsg || "注册失败"); return; }
+        clearUserState();
         setAccount({ username: user, password: pwd });
         applyUserData({});
         document.getElementById("gateRegUsername").value = "";
@@ -1205,7 +1245,7 @@
         document.getElementById("gateLoginForm").classList.remove("hide");
         refreshHeader();
         enterApp();
-        alert("注册成功，数据将实时同步到云端，任意设备登录此账号即可同步。");
+        alert("注册成功。在手机登录时，请用浏览器打开与当前页面「同一链接」（见下方当前同步地址），再输入本账号密码。若使用 Vercel，需在项目设置中配置 Upstash Redis 才能跨设备保存账号。");
       });
       return;
     }
