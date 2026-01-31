@@ -119,8 +119,15 @@
     const el4 = document.getElementById("vocabLevelDisplay"); if (el4) el4.textContent = getStr(KEY.vocabLevel) || "未检测";
   }
 
-  // 页面切换
+  // 页面切换（未登录只能看登录门，不能进主页或其它学习页）
   function showPage(pageId) {
+    var acc = getAccount();
+    if (!acc || !acc.username) {
+      if (pageId !== "pageLoginGate") {
+        document.getElementById("appHeader").style.display = "none";
+        pageId = "pageLoginGate";
+      }
+    }
     document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
     const p = document.getElementById(pageId);
     if (p) p.classList.add("active");
