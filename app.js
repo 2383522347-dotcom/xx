@@ -949,6 +949,7 @@
       };
     });
   }
+  window.fillAdminList = fillAdminList;
 
   // 登录门页：登录
   document.getElementById("gateBtnLogin").onclick = function() {

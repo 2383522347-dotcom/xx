@@ -610,7 +610,7 @@
       <p>当前：<strong id="accountModalUser">—</strong></p>
       <div class="account-modal-actions">
         <button type="button" class="btn" id="accountModalLogout">退出</button>
-        <button type="button" class="btn" id="accountModalManage" style="display:none">管理</button>
+        <button type="button" class="btn" id="accountModalManage" style="display:none" onclick="if(window.openAdminPage)window.openAdminPage()">管理</button>
       </div>
     </div>
   </div>
@@ -638,8 +638,21 @@
       var modal=document.getElementById('modalAccount');
       if(modal) modal.classList.add('hide');
     }
+    function openAdminPage(){
+      var modal=document.getElementById('modalAccount');
+      if(modal) modal.classList.add('hide');
+      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+      var admin=document.getElementById('pageAdmin');
+      if(admin) admin.classList.add('active');
+      var listEl=document.getElementById('adminAccountList');
+      if(listEl){
+        if(typeof window.fillAdminList==='function') window.fillAdminList();
+        else listEl.innerHTML='<p class="login-gate-tip">暂无账户</p>';
+      }
+    }
     window.openAccountModal=openAccountModal;
     window.doLogout=doLogout;
+    window.openAdminPage=openAdminPage;
     document.addEventListener('DOMContentLoaded',function(){
       var logoutBtn=document.getElementById('accountModalLogout');
       var closeBtn=document.getElementById('modalAccountClose');
