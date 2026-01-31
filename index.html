@@ -157,6 +157,17 @@
     #btnReadTranslation { transition: color 0.25s var(--ease), transform 0.2s var(--ease); }
     #btnReadTranslation:hover { color: var(--accent); transform: scale(1.1); }
 
+    /* 登录门页 */
+    .login-gate-box {
+      max-width: 360px; margin: 60px auto; padding: 36px;
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .login-gate-box h2 { font-size: 20px; margin-bottom: 12px; text-align: center; }
+    .login-gate-tip { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; text-align: center; }
+    .login-gate-box input { display: block; width: 100%; margin-bottom: 12px; }
+    .login-gate-box .btn { margin-right: 10px; margin-top: 8px; }
+
     /* 平板 */
     @media (max-width: 1024px) {
       .main { padding: 20px 16px; }
@@ -204,7 +215,7 @@
   </style>
 </head>
 <body>
-  <header class="header">
+  <header class="header" id="appHeader">
     <div class="header-left">
       <span class="stat">连续签到: <strong id="signInDays">0</strong> 天</span>
       <span class="stat">今日学习: <strong id="studyTimeDisplay">0分0秒0</strong></span>
@@ -220,6 +231,26 @@
   </header>
 
   <main class="main">
+    <!-- 登录门：未登录时只显示此页，登录/注册成功后进入主页 -->
+    <div id="pageLoginGate" class="page">
+      <div class="login-gate-box">
+        <h2>机电一体化英文学习</h2>
+        <p class="login-gate-tip">请先登录或注册后再进行学习</p>
+        <div id="gateLoginForm">
+          <input type="text" id="gateUsername" placeholder="账号">
+          <input type="password" id="gatePassword" placeholder="密码">
+          <button type="button" class="btn" id="gateBtnLogin">登录</button>
+          <button type="button" class="btn" id="gateBtnShowRegister">注册</button>
+        </div>
+        <div id="gateRegisterForm" class="hide">
+          <input type="text" id="gateRegUsername" placeholder="新账号">
+          <input type="password" id="gateRegPassword" placeholder="新密码">
+          <button type="button" class="btn" id="gateBtnRegister">注册</button>
+          <button type="button" class="btn" id="gateBtnShowLogin">返回登录</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 主页 3x3 -->
     <div id="pageHome" class="page active">
       <div class="home-top-bar">

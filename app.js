@@ -125,8 +125,25 @@
     const p = document.getElementById(pageId);
     if (p) p.classList.add("active");
     const isHome = pageId === "pageHome";
-    if (isHome) stopStudyTimer(); else startStudyTimer();
+    if (isHome) stopStudyTimer();
+    else if (pageId !== "pageLoginGate") startStudyTimer();
     refreshHeader();
+  }
+
+  // 登录门：未登录时只显示登录/注册页，登录或注册成功后进入主页
+  function enterApp() {
+    document.getElementById("appHeader").style.display = "";
+    showPage("pageHome");
+  }
+  function initAuthGate() {
+    const acc = getAccount();
+    if (!acc || !acc.username) {
+      document.getElementById("appHeader").style.display = "none";
+      showPage("pageLoginGate");
+    } else {
+      document.getElementById("appHeader").style.display = "";
+      showPage("pageHome");
+    }
   }
 
   // 单词本列表
@@ -855,6 +872,54 @@
     document.getElementById("accountRegisterForm").classList.add("hide");
     document.getElementById("accountLoginForm").classList.remove("hide");
   };
+
+  // 登录门页：登录
+  document.getElementById("gateBtnLogin").onclick = function() {
+    const user = (document.getElementById("gateUsername").value || "").trim();
+    const pwd = document.getElementById("gatePassword").value || "";
+    if (!user) { alert("请输入账号"); return; }
+    const accounts = getAccounts();
+    if (accounts[user] && accounts[user] !== pwd) { alert("密码错误"); return; }
+    setAccount({ username: user, password: pwd });
+    if (SYNC_API_URL) {
+      syncFromServer(function(ok) {
+        if (!ok) syncFromAccount();
+        refreshHeader();
+        enterApp();
+        alert(ok ? "登录成功，数据已从服务器同步" : "登录成功，使用本地数据");
+      });
+    } else {
+      syncFromAccount();
+      refreshHeader();
+      enterApp();
+      alert("登录成功，数据已同步");
+    }
+  };
+  document.getElementById("gateBtnShowRegister").onclick = function() {
+    document.getElementById("gateLoginForm").classList.add("hide");
+    document.getElementById("gateRegisterForm").classList.remove("hide");
+  };
+  document.getElementById("gateBtnRegister").onclick = function() {
+    const user = (document.getElementById("gateRegUsername").value || "").trim();
+    const pwd = document.getElementById("gateRegPassword").value || "";
+    if (!user) { alert("请输入新账号"); return; }
+    const accounts = getAccounts();
+    if (accounts[user]) { alert("该账号已存在"); return; }
+    accounts[user] = pwd;
+    setAccounts(accounts);
+    setAccount({ username: user, password: pwd });
+    document.getElementById("gateRegisterForm").classList.add("hide");
+    document.getElementById("gateLoginForm").classList.remove("hide");
+    enterApp();
+    alert("注册成功，已自动登录");
+  };
+  document.getElementById("gateBtnShowLogin").onclick = function() {
+    document.getElementById("gateRegisterForm").classList.add("hide");
+    document.getElementById("gateLoginForm").classList.remove("hide");
+  };
+
+  // 页面加载时：未登录则显示登录门
+  initAuthGate();
 
   // 搜索/翻译：内部调用免费翻译接口，结果若为英文则字母可点开单词卡
   function hasChinese(text) {
