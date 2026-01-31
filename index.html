@@ -240,6 +240,33 @@
     <!-- 登录门：未登录时只显示此页，登录/注册成功后进入主页 -->
     <div id="pageLoginGate" class="page active">
       <div class="login-gate-box">
+        <script>
+        (function(){
+          function doGateRegister(){
+            var user=(document.getElementById('gateRegUsername')&&document.getElementById('gateRegUsername').value||'').trim();
+            var pwd=document.getElementById('gateRegPassword')?document.getElementById('gateRegPassword').value:'';
+            var confirmPwd=document.getElementById('gateRegPasswordConfirm')?document.getElementById('gateRegPasswordConfirm').value:'';
+            if(!user){ alert('注册失败'); return; }
+            if(!/^[a-zA-Z0-9]+$/.test(user)){ alert('账号只能使用英文字母和数字'); return; }
+            if(!pwd){ alert('注册失败'); return; }
+            if(!/^[a-zA-Z0-9]+$/.test(pwd)){ alert('密码只能使用英文字母和数字'); return; }
+            if(pwd!==confirmPwd){ alert('注册失败'); return; }
+            var raw=localStorage.getItem('mech_accounts')||'{}';
+            var accounts={};
+            try{ accounts=JSON.parse(raw); }catch(e){}
+            if(accounts[user]){ alert('注册失败'); return; }
+            accounts[user]=pwd;
+            try{ localStorage.setItem('mech_accounts',JSON.stringify(accounts)); }catch(e){ alert('注册失败'); return; }
+            document.getElementById('gateRegUsername').value='';
+            document.getElementById('gateRegPassword').value='';
+            document.getElementById('gateRegPasswordConfirm').value='';
+            document.getElementById('gateRegisterForm').classList.add('hide');
+            document.getElementById('gateLoginForm').classList.remove('hide');
+            alert('注册成功');
+          }
+          window.doGateRegister=doGateRegister;
+        })();
+        </script>
         <h2>机电一体化英文学习</h2>
         <p class="login-gate-tip">请先登录或注册后再进行学习</p>
         <div id="gateLoginForm">
@@ -254,7 +281,7 @@
           <input type="text" id="gateRegUsername" placeholder="账号（仅英文、数字）">
           <input type="password" id="gateRegPassword" placeholder="密码（仅英文、数字）">
           <input type="password" id="gateRegPasswordConfirm" placeholder="确认密码">
-          <button type="button" class="btn" id="gateBtnRegister" onclick="(window.doGateRegister||function(){alert('请刷新页面后重试');})()">注册</button>
+          <button type="button" class="btn" id="gateBtnRegister" onclick="if(window.doGateRegister)window.doGateRegister()">注册</button>
           <button type="button" class="btn" id="gateBtnShowLogin" onclick="var f=document.getElementById('gateLoginForm'); var r=document.getElementById('gateRegisterForm'); if(f&&r){ r.classList.add('hide'); f.classList.remove('hide'); }">返回登录</button>
         </div>
       </div>
