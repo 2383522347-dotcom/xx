@@ -268,8 +268,12 @@
   })();
   var syncToServerTimer = null;
 
-  function getAccount() { return getJSON(KEY.account, {}); }
-  function setAccount(o) { setJSON(KEY.account, o); }
+  function getAccount() {
+    try { var v = sessionStorage.getItem(KEY.account); return v ? JSON.parse(v) : {}; } catch (e) { return {}; }
+  }
+  function setAccount(o) {
+    try { sessionStorage.setItem(KEY.account, JSON.stringify(o || {})); } catch (e) {}
+  }
   function getAccounts() { return getJSON(KEY.accounts, {}); }
   function setAccounts(o) { setJSON(KEY.accounts, o); }
   function getBlacklist() { return getJSON(KEY.blacklist, []); }
@@ -1432,8 +1436,12 @@
   })();
   var syncToServerTimer = null;
 
-  function getAccount() { return getJSON(KEY.account, {}); }
-  function setAccount(o) { setJSON(KEY.account, o); }
+  function getAccount() {
+    try { var v = sessionStorage.getItem(KEY.account); return v ? JSON.parse(v) : {}; } catch (e) { return {}; }
+  }
+  function setAccount(o) {
+    try { sessionStorage.setItem(KEY.account, JSON.stringify(o || {})); } catch (e) {}
+  }
   function getAccounts() { return getJSON(KEY.accounts, {}); }
   function setAccounts(o) { setJSON(KEY.accounts, o); }
   function getBlacklist() { return getJSON(KEY.blacklist, []); }

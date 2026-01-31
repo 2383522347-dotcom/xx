@@ -282,7 +282,7 @@
             try{ accounts=JSON.parse(raw); }catch(e){}
             if(!accounts[user]){ alert('登录失败'); return; }
             if(accounts[user]!==pwd){ alert('密码错误'); return; }
-            try{ localStorage.setItem('mech_account',JSON.stringify({username:user,password:pwd})); }catch(e){ alert('登录失败'); return; }
+            try{ sessionStorage.setItem('mech_account',JSON.stringify({username:user,password:pwd})); }catch(e){ alert('登录失败'); return; }
             var header=document.getElementById('appHeader');
             if(header) header.style.display='';
             document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
@@ -619,7 +619,7 @@
   <script>
   (function(){
     function openAccountModal(){
-      var acc={}; try{ acc=JSON.parse(localStorage.getItem('mech_account')||'{}'); }catch(e){}
+      var acc={}; try{ acc=JSON.parse(sessionStorage.getItem('mech_account')||'{}'); }catch(e){}
       var u=acc.username||'未登录';
       var userEl=document.getElementById('accountModalUser');
       var manageEl=document.getElementById('accountModalManage');
@@ -629,7 +629,7 @@
       if(modal) modal.classList.remove('hide');
     }
     function doLogout(){
-      try{ localStorage.removeItem('mech_account'); }catch(e){}
+      try{ sessionStorage.removeItem('mech_account'); }catch(e){}
       var header=document.getElementById('appHeader');
       if(header) header.style.display='none';
       document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
@@ -638,20 +638,15 @@
       var modal=document.getElementById('modalAccount');
       if(modal) modal.classList.add('hide');
     }
-    function openAdminPage(){
-      var modal=document.getElementById('modalAccount');
-      if(modal) modal.classList.add('hide');
-      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
-      var admin=document.getElementById('pageAdmin');
-      if(admin) admin.classList.add('active');
+    function fillAdminListFallback(){
       var listEl=document.getElementById('adminAccountList');
       if(!listEl) return;
-      if(typeof window.fillAdminList==='function'){ window.fillAdminList(); return; }
       var raw=localStorage.getItem('mech_accounts')||'{}';
       var accounts={}; try{ accounts=JSON.parse(raw); }catch(e){}
       var blRaw=localStorage.getItem('mech_blacklist')||'[]';
       var blacklist=[]; try{ blacklist=JSON.parse(blRaw); }catch(e){}
       var html='';
+      function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
       Object.keys(accounts).forEach(function(username){
         var pwd=accounts[username];
         var userKey='mech_user_'+username;
@@ -663,12 +658,83 @@
         var vocabLevel=data.vocabLevel||'未检测';
         var coins=data.coins!=null?data.coins:0;
         var frozen=blacklist.indexOf(username)>=0;
+        var uAttr=esc(username);
         html+='<div class="admin-account-item'+(frozen?' frozen':'')+'"><h4>账户：'+username+(frozen?' <span style="color:#c45c4a;">(已冻结)</span>':'')+'</h4>';
         html+='<p class="admin-stats">密码：'+pwd+' | 连续签到：'+signInDays+' 天 | 今日学习：'+studyStr+' | 词汇量：'+vocabLevel+' | 金币：'+coins+'</p>';
-        html+='<p class="login-gate-tip" style="font-size:12px;margin-top:6px;">修改/删除/拉黑需刷新页面后使用管理</p></div>';
+        html+='<div class="admin-actions"><button type="button" class="btn" data-user="'+uAttr+'" onclick="window.adminEditPwd(this.getAttribute(\'data-user\'))">修改密码</button>';
+        html+='<button type="button" class="btn" data-user="'+uAttr+'" onclick="window.adminDeleteAccount(this.getAttribute(\'data-user\'))">删除账户</button>';
+        if(frozen) html+='<button type="button" class="btn" data-user="'+uAttr+'" onclick="window.adminUnblacklist(this.getAttribute(\'data-user\'))">取消黑名单</button>';
+        else html+='<button type="button" class="btn" data-user="'+uAttr+'" onclick="window.adminBlacklist(this.getAttribute(\'data-user\'))">拉入黑名单</button>';
+        html+='</div></div>';
       });
       listEl.innerHTML=html||'<p class="login-gate-tip">暂无账户</p>';
     }
+    function adminEditPwd(username){
+      if(!username) return;
+      var newPwd=prompt('输入新密码（仅英文、数字）','');
+      if(newPwd==null) return;
+      if(!/^[a-zA-Z0-9]+$/.test(newPwd)){ alert('密码只能使用英文字母和数字'); return; }
+      var raw=localStorage.getItem('mech_accounts')||'{}';
+      var accounts={}; try{ accounts=JSON.parse(raw); }catch(e){}
+      if(!accounts[username]) return;
+      accounts[username]=newPwd;
+      localStorage.setItem('mech_accounts',JSON.stringify(accounts));
+      fillAdminListFallback();
+      alert('已修改');
+    }
+    function adminDeleteAccount(username){
+      if(!username) return;
+      if(!confirm('确定删除账户 '+username+'？')) return;
+      var raw=localStorage.getItem('mech_accounts')||'{}';
+      var accounts={}; try{ accounts=JSON.parse(raw); }catch(e){}
+      delete accounts[username];
+      localStorage.setItem('mech_accounts',JSON.stringify(accounts));
+      try{ localStorage.removeItem('mech_user_'+username); }catch(e){}
+      fillAdminListFallback();
+      alert('已删除');
+    }
+    function adminBlacklist(username){
+      if(!username) return;
+      if(!confirm('确定将 '+username+' 拉入黑名单？该用户将被踢出并无法登录直至取消黑名单。')) return;
+      var blRaw=localStorage.getItem('mech_blacklist')||'[]';
+      var blacklist=[]; try{ blacklist=JSON.parse(blRaw); }catch(e){}
+      if(blacklist.indexOf(username)<0) blacklist.push(username);
+      localStorage.setItem('mech_blacklist',JSON.stringify(blacklist));
+      var accRaw=sessionStorage.getItem('mech_account')||'{}';
+      var acc={}; try{ acc=JSON.parse(accRaw); }catch(e){}
+      if(acc.username===username){
+        sessionStorage.removeItem('mech_account');
+        var header=document.getElementById('appHeader'); if(header) header.style.display='none';
+        document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+        document.getElementById('pageLoginGate').classList.add('active');
+      }
+      fillAdminListFallback();
+      alert('已拉入黑名单');
+    }
+    function adminUnblacklist(username){
+      if(!username) return;
+      var blRaw=localStorage.getItem('mech_blacklist')||'[]';
+      var blacklist=[]; try{ blacklist=JSON.parse(blRaw); }catch(e){}
+      blacklist=blacklist.filter(function(u){ return u!==username; });
+      localStorage.setItem('mech_blacklist',JSON.stringify(blacklist));
+      fillAdminListFallback();
+      alert('已取消黑名单');
+    }
+    function openAdminPage(){
+      var modal=document.getElementById('modalAccount');
+      if(modal) modal.classList.add('hide');
+      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+      var admin=document.getElementById('pageAdmin');
+      if(admin) admin.classList.add('active');
+      var listEl=document.getElementById('adminAccountList');
+      if(!listEl) return;
+      if(typeof window.fillAdminList==='function'){ window.fillAdminList(); return; }
+      fillAdminListFallback();
+    }
+    window.adminEditPwd=adminEditPwd;
+    window.adminDeleteAccount=adminDeleteAccount;
+    window.adminBlacklist=adminBlacklist;
+    window.adminUnblacklist=adminUnblacklist;
     function goBackToHome(){
       document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
       var home=document.getElementById('pageHome');
@@ -678,12 +744,27 @@
     window.doLogout=doLogout;
     window.openAdminPage=openAdminPage;
     window.goBackToHome=goBackToHome;
+    function initLoginState(){
+      var acc={}; try{ acc=JSON.parse(sessionStorage.getItem('mech_account')||'{}'); }catch(e){}
+      var header=document.getElementById('appHeader');
+      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+      if(acc&&acc.username){
+        if(header) header.style.display='';
+        var home=document.getElementById('pageHome'); if(home) home.classList.add('active');
+      }else{
+        if(header) header.style.display='none';
+        var gate=document.getElementById('pageLoginGate'); if(gate) gate.classList.add('active');
+      }
+    }
+    window.initLoginState=initLoginState;
     document.addEventListener('DOMContentLoaded',function(){
+      initLoginState();
       var logoutBtn=document.getElementById('accountModalLogout');
       var closeBtn=document.getElementById('modalAccountClose');
       if(logoutBtn) logoutBtn.onclick=doLogout;
       if(closeBtn) closeBtn.onclick=function(){ var m=document.getElementById('modalAccount'); if(m) m.classList.add('hide'); };
     });
+    if(document.readyState!=='loading') initLoginState();
   })();
   </script>
   <script src="data.js"></script>
