@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 (function() {
   "use strict";
 
@@ -1124,26 +1123,6 @@
   refreshHeader();
   setInterval(refreshHeader, 1000);
 })();
-=======
-(function() {
-  "use strict";
-
-  const KEY = {
-    signInDays: "mech_signInDays",
-    lastSignIn: "mech_lastSignIn",
-    studyMsToday: "mech_studyMsToday",
-    studyDate: "mech_studyDate",
-    coins: "mech_coins",
-    learnedWords: "mech_learnedWords",
-    forgetReviewDays: "mech_forgetReviewDays",
-    lastForgetReview: "mech_lastForgetReview",
-    vocabLevel: "mech_vocabLevel",
-    vocabLevelIndex: "mech_vocabLevelIndex",
-    account: "mech_account",
-    accounts: "mech_accounts",
-    learnedCount: "mech_learnedCount",
-    wordLearnCount: "mech_wordLearnCount"
-  };
 
   function getNum(k, def) {
     const v = localStorage.getItem(k);
