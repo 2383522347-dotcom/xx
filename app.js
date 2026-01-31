@@ -861,6 +861,13 @@
     document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
     document.getElementById("pageLoginGate").classList.add("active");
     document.getElementById("modalAccount").classList.add("hide");
+    var u = document.getElementById("gateUsername"); if (u) u.value = "";
+    var p = document.getElementById("gatePassword"); if (p) p.value = "";
+    var ru = document.getElementById("gateRegUsername"); if (ru) ru.value = "";
+    var rp = document.getElementById("gateRegPassword"); if (rp) rp.value = "";
+    var rpc = document.getElementById("gateRegPasswordConfirm"); if (rpc) rpc.value = "";
+    var loginForm = document.getElementById("gateLoginForm"); var regForm = document.getElementById("gateRegisterForm");
+    if (loginForm) loginForm.classList.remove("hide"); if (regForm) regForm.classList.add("hide");
   };
   document.getElementById("accountModalManage").onclick = function() {
     document.getElementById("modalAccount").classList.add("hide");
@@ -2029,6 +2036,13 @@
     document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
     document.getElementById("pageLoginGate").classList.add("active");
     document.getElementById("modalAccount").classList.add("hide");
+    var u = document.getElementById("gateUsername"); if (u) u.value = "";
+    var p = document.getElementById("gatePassword"); if (p) p.value = "";
+    var ru = document.getElementById("gateRegUsername"); if (ru) ru.value = "";
+    var rp = document.getElementById("gateRegPassword"); if (rp) rp.value = "";
+    var rpc = document.getElementById("gateRegPasswordConfirm"); if (rpc) rpc.value = "";
+    var loginForm = document.getElementById("gateLoginForm"); var regForm = document.getElementById("gateRegisterForm");
+    if (loginForm) loginForm.classList.remove("hide"); if (regForm) regForm.classList.add("hide");
   };
   document.getElementById("accountModalManage").onclick = function() {
     document.getElementById("modalAccount").classList.add("hide");
