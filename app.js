@@ -923,10 +923,10 @@
     var user = (document.getElementById("gateRegUsername").value || "").trim();
     var pwd = document.getElementById("gateRegPassword").value || "";
     var confirmPwd = document.getElementById("gateRegPasswordConfirm").value || "";
-    if (!user) { alert("请输入账号"); return; }
-    if (pwd !== confirmPwd) { alert("密码与确认密码不一致"); return; }
+    if (!user) { alert("注册失败"); return; }
+    if (pwd !== confirmPwd) { alert("注册失败"); return; }
     var accounts = getAccounts();
-    if (accounts[user]) { alert("该账号已存在"); return; }
+    if (accounts[user]) { alert("注册失败"); return; }
     accounts[user] = pwd;
     setAccounts(accounts);
     document.getElementById("gateRegUsername").value = "";
@@ -935,7 +935,7 @@
     document.getElementById("gateRegisterForm").classList.add("hide");
     document.getElementById("gateLoginForm").classList.remove("hide");
     document.getElementById("gateBtnRegister").disabled = true;
-    alert("注册成功，请使用账号和密码登录");
+    alert("注册成功");
   };
   document.getElementById("gateBtnShowLogin").onclick = function() {
     document.getElementById("gateRegisterForm").classList.add("hide");
