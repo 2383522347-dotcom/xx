@@ -909,11 +909,14 @@
     document.getElementById("gateRegPassword").value = "";
     document.getElementById("gateRegPasswordConfirm").value = "";
   };
-  document.getElementById("gateBtnRegister").onclick = function() {
+  function doGateRegister() {
     var user = (document.getElementById("gateRegUsername").value || "").trim();
     var pwd = document.getElementById("gateRegPassword").value || "";
     var confirmPwd = document.getElementById("gateRegPasswordConfirm").value || "";
     if (!user) { alert("注册失败"); return; }
+    if (!/^[a-zA-Z0-9]+$/.test(user)) { alert("账号只能使用英文字母和数字"); return; }
+    if (!pwd) { alert("注册失败"); return; }
+    if (!/^[a-zA-Z0-9]+$/.test(pwd)) { alert("密码只能使用英文字母和数字"); return; }
     if (pwd !== confirmPwd) { alert("注册失败"); return; }
     var accounts = getAccounts();
     if (accounts[user]) { alert("注册失败"); return; }
@@ -925,7 +928,9 @@
     document.getElementById("gateRegisterForm").classList.add("hide");
     document.getElementById("gateLoginForm").classList.remove("hide");
     alert("注册成功");
-  };
+  }
+  window.doGateRegister = doGateRegister;
+  document.getElementById("gateBtnRegister").onclick = doGateRegister;
   document.getElementById("gateBtnShowLogin").onclick = function() {
     document.getElementById("gateRegisterForm").classList.add("hide");
     document.getElementById("gateLoginForm").classList.remove("hide");

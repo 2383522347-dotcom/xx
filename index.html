@@ -254,7 +254,7 @@
           <input type="text" id="gateRegUsername" placeholder="账号（仅英文、数字）">
           <input type="password" id="gateRegPassword" placeholder="密码（仅英文、数字）">
           <input type="password" id="gateRegPasswordConfirm" placeholder="确认密码">
-          <button type="button" class="btn" id="gateBtnRegister">注册</button>
+          <button type="button" class="btn" id="gateBtnRegister" onclick="(window.doGateRegister||function(){alert('请刷新页面后重试');})()">注册</button>
           <button type="button" class="btn" id="gateBtnShowLogin" onclick="var f=document.getElementById('gateLoginForm'); var r=document.getElementById('gateRegisterForm'); if(f&&r){ r.classList.add('hide'); f.classList.remove('hide'); }">返回登录</button>
         </div>
       </div>
