@@ -340,15 +340,18 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: acc.username, password: acc.password })
     })
-      .then(function(r) { return r.json(); })
+      .then(function(r) {
+        if (!r.ok) { SYNC_API_URL = ""; return null; }
+        return r.json();
+      })
       .then(function(res) {
         if (res && res.data) {
           applyUserData(res.data);
           refreshHeader();
         }
-        if (cb) cb(true);
+        if (cb) cb(!!res);
       })
-      .catch(function() { if (cb) cb(false); });
+      .catch(function() { SYNC_API_URL = ""; if (cb) cb(false); });
   }
   function syncToServer() {
     const acc = getAccount();
@@ -358,11 +361,14 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: acc.username, password: acc.password, data: buildUserData() })
     })
-      .then(function(r) { return r.json(); })
+      .then(function(r) {
+        if (!r.ok) { SYNC_API_URL = ""; return null; }
+        return r.json();
+      })
       .then(function(res) {
         if (res && res.data) applyUserData(res.data);
       })
-      .catch(function() {});
+      .catch(function() { SYNC_API_URL = ""; });
   }
 
   // 初始化：今日学习日期
