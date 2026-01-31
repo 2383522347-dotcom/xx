@@ -78,7 +78,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, data: data });
   }
 
-  if (!obj || obj.password !== password) {
+  // 拉取：无存档时视为新用户，返回空数据（避免 401）
+  if (!obj) return res.status(200).json({ data: {} });
+  if (obj.password !== password) {
     return res.status(401).json({ error: "密码错误" });
   }
   return res.status(200).json({ data: obj.data || {} });

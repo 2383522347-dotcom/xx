@@ -52,8 +52,10 @@
     const days = getSignInDays();
     setNum(KEY.signInDays, days);
     setStr(KEY.lastSignIn, today);
+    setNum(KEY.coins, getNum(KEY.coins) + 10);
     refreshHeader();
-    alert("签到成功！连续签到 " + days + " 天");
+    syncToAccount();
+    alert("签到成功！连续签到 " + days + " 天，+10 金币");
   }
 
   // 今日学习时长：进入模块开始计时，每30分钟金币 2*连续签到*(时长/30)
@@ -347,6 +349,7 @@
       .then(function(res) {
         if (res && res.data) {
           applyUserData(res.data);
+          if (Object.keys(res.data).length === 0) syncFromAccount();
           refreshHeader();
         }
         if (cb) cb(!!res);
