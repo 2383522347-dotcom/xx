@@ -1318,4 +1318,19 @@
 
   refreshHeader();
   setInterval(refreshHeader, 1000);
+
+  // 每秒推送：今日学习时间、连续签到、签到状态、已学单词、词汇等级等主页数据实时同步到云端
+  setInterval(function() {
+    var acc = getAccount();
+    if (!acc || !acc.username || !SYNC_API_URL) return;
+    syncToAccount();
+    syncToServer();
+  }, 1000);
+
+  // 每 3 秒从云端拉取一次，以便多设备/多标签页看到对方的最新数据
+  setInterval(function() {
+    var acc = getAccount();
+    if (!acc || !acc.username || !SYNC_API_URL) return;
+    syncFromServer(function() {});
+  }, 3000);
 })();
