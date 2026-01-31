@@ -424,7 +424,10 @@
       if (mp.reading && mp.reading.article) {
         currentReadingLevel = mp.reading.level || "";
         currentReadingArticle = mp.reading.article;
-        currentReadingQuizQuestions = Array.isArray(mp.reading.quizQuestions) ? mp.reading.quizQuestions : [];
+        var quizModal = document.getElementById("modalReadingQuiz");
+        if (!(quizModal && !quizModal.classList.contains("hide"))) {
+          currentReadingQuizQuestions = Array.isArray(mp.reading.quizQuestions) ? mp.reading.quizQuestions : [];
+        }
       }
     }
   }
@@ -805,7 +808,8 @@
     showOneWordTestCard();
   };
 
-  // 基础单词：选等级 -> 用对应等级词表进单词卡
+  // 基础单词：选等级 -> 用对应等级词表进单词卡（每等级建议至少 1 万词，可经外部数据加载）
+  var BASIC_LEVEL_MIN_WORDS = 10000;
   document.getElementById("btnBackFromBasic").onclick = function() { showPage("pageHome"); };
   document.getElementById("btnBasicConfirm").onclick = function() {
     const sel = document.getElementById("basicLevelSelect");
@@ -826,9 +830,17 @@
 
   document.getElementById("btnBackFromVocabTest").onclick = function() { showPage("pageHome"); };
   document.getElementById("btnVocabTestStart").onclick = function() {
-    const shuffled = VOCAB_POOL.slice().sort(function() { return Math.random() - 0.5; });
-    vocabTestAnswers = shuffled.slice(0, 50).map(function(w) {
-      const showCn = Math.random() > 0.5;
+    var learned = getJSON(KEY.learnedWords, []);
+    var learnedSet = {};
+    learned.forEach(function(x) { learnedSet[(x && x.en) || ""] = true; });
+    var learnedPool = VOCAB_POOL.filter(function(w) { return learnedSet[(w && w.en) || ""]; });
+    var notLearnedPool = VOCAB_POOL.filter(function(w) { return !learnedSet[(w && w.en) || ""]; });
+    var takeLearned = Math.min(25, learnedPool.length);
+    var takeNotLearned = 50 - takeLearned;
+    var fromLearned = learnedPool.slice().sort(function() { return Math.random() - 0.5; }).slice(0, takeLearned);
+    var fromNotLearned = notLearnedPool.slice().sort(function() { return Math.random() - 0.5; }).slice(0, takeNotLearned);
+    vocabTestAnswers = fromLearned.concat(fromNotLearned).sort(function() { return Math.random() - 0.5; }).map(function(w) {
+      var showCn = Math.random() > 0.5;
       return { word: w, showCn: showCn, answer: showCn ? w.en : w.cn };
     });
     vocabTestQi = 0;
@@ -1039,18 +1051,33 @@
   document.getElementById("modalReadingQuizClose").onclick = function() { document.getElementById("modalReadingQuiz").classList.add("hide"); };
   document.getElementById("btnReadingQuizSubmit").onclick = function() {
     try {
-      var questions = currentReadingQuizQuestions;
-      if (!questions || questions.length === 0) { alert("暂无测验题"); return; }
-      var total = questions.length;
-      var correct = 0;
+      var qDoms = document.querySelectorAll("#readingQuizQuestions .reading-quiz-q");
+      if (!qDoms || qDoms.length === 0) {
+        var questions = currentReadingQuizQuestions;
+        if (!questions || questions.length === 0) { alert("暂无测验题"); return; }
+      }
+      var total = qDoms.length;
+      var correctCount = 0;
+      var details = [];
       for (var i = 0; i < total; i++) {
+        var rightIdx = Math.max(0, Math.min(3, parseInt(qDoms[i].getAttribute("data-correct"), 10) || 0));
         var chosen = document.querySelector("input[name=\"reading_q_" + i + "\"]:checked");
         var val = chosen ? parseInt(chosen.value, 10) : -1;
-        var q = questions[i];
-        var rightIdx = Math.max(0, Math.min(3, parseInt(q.correct, 10) || 0));
-        if (val === rightIdx) correct++;
+        var isCorrect = val === rightIdx;
+        if (isCorrect) correctCount++;
+        var qText = "";
+        var pEl = qDoms[i].querySelector("p");
+        if (pEl) qText = (pEl.textContent || "").trim().replace(/^\d+\.\s*/, "");
+        var opts = [];
+        qDoms[i].querySelectorAll(".reading-quiz-opt").forEach(function(label) {
+          var t = (label.textContent || "").trim();
+          if (t) opts.push(t);
+        });
+        var userChoice = val >= 0 && opts[val] ? opts[val] : "未选";
+        var rightAnswer = opts[rightIdx] || "";
+        details.push({ qText: qText, userChoice: userChoice, rightAnswer: rightAnswer, isCorrect: isCorrect, index: i + 1 });
       }
-      var rate = total > 0 ? correct / total : 0;
+      var rate = total > 0 ? correctCount / total : 0;
       var quizModal = document.getElementById("modalReadingQuiz");
       var resultModal = document.getElementById("modalReadingResult");
       var resultTitle = document.getElementById("readingResultTitle");
@@ -1058,10 +1085,24 @@
       var coinsEl = document.getElementById("readingResultCoins");
       if (quizModal) quizModal.classList.add("hide");
       if (resultTitle) resultTitle.textContent = "测验结果";
-      if (resultText) resultText.textContent = "正确 " + correct + " / " + total + "，正确率 " + (rate * 100).toFixed(0) + "%。" + (rate >= 0.9 ? " 恭喜达标！" : " 未达到 90%，继续加油。");
-      if (rate >= 0.9) {
+      var summary = "正确 " + correctCount + " / " + total + "，正确率 " + (rate * 100).toFixed(0) + "%。";
+      if (rate >= 1) summary += " 全部正确，恭喜！";
+      else if (rate >= 0.9) summary += " 未达全部正确，继续加油。";
+      else summary += " 请根据下方讲解复习。";
+      var detailHtml = "";
+      details.forEach(function(d) {
+        detailHtml += "<div class=\"reading-result-item " + (d.isCorrect ? "correct" : "wrong") + "\" style=\"margin:10px 0;padding:8px;border-radius:8px;border-left:4px solid " + (d.isCorrect ? "#238636" : "#c45c4a") + ";background:var(--bg-soft);\">";
+        detailHtml += "<strong>第 " + d.index + " 题：" + (d.isCorrect ? "正确" : "错误") + "</strong><br>";
+        detailHtml += "题目：" + escapeHtml(d.qText) + "<br>";
+        detailHtml += "你的选择：" + escapeHtml(d.userChoice) + "<br>";
+        detailHtml += "正确答案：" + escapeHtml(d.rightAnswer) + "<br>";
+        detailHtml += "依据：根据文章内容，\"" + escapeHtml(d.rightAnswer) + "\" 为正确答案。";
+        detailHtml += "</div>";
+      });
+      if (resultText) resultText.innerHTML = "<p style=\"margin-bottom:12px;\">" + summary + "</p>" + detailHtml;
+      if (rate >= 1) {
         setNum(KEY.coins, getNum(KEY.coins) + 600);
-        if (coinsEl) { coinsEl.textContent = "+ 600 金币"; coinsEl.classList.remove("hide"); }
+        if (coinsEl) { coinsEl.textContent = "+ 600 金币（全部正确）"; coinsEl.classList.remove("hide"); }
       } else {
         if (coinsEl) coinsEl.classList.add("hide");
       }
@@ -1381,10 +1422,19 @@
     return null;
   }
 
+  function isMobileOrTablet() {
+    return ("ontouchstart" in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || (window.innerWidth <= 768);
+  }
   document.getElementById("btnSearch").onclick = function() {
     document.getElementById("searchResult").innerHTML = "";
     document.getElementById("searchInput").value = "";
     document.getElementById("modalSearch").classList.remove("hide");
+    if (isMobileOrTablet()) {
+      setTimeout(function() {
+        var el = document.getElementById("searchInput");
+        if (el) { el.focus(); }
+      }, 150);
+    }
   };
   document.getElementById("modalSearchClose").onclick = function() { document.getElementById("modalSearch").classList.add("hide"); };
 
