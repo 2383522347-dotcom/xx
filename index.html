@@ -173,6 +173,12 @@
       color: #c62828; font-size: 14px; line-height: 1.4;
     }
     .gate-reg-error.show { display: block; }
+    .account-modal-actions { display: flex; gap: 10px; margin-top: 14px; }
+    .admin-account-item { background: var(--bg-soft); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+    .admin-account-item.frozen { border-color: #c45c4a; background: rgba(196,92,74,0.08); }
+    .admin-account-item h4 { margin-bottom: 8px; font-size: 14px; }
+    .admin-account-item .admin-stats { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+    .admin-account-item .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
     /* 平板 */
     @media (max-width: 1024px) {
@@ -232,7 +238,7 @@
       <button type="button" class="btn" id="btnSignIn">签到</button>
       <button type="button" class="btn" id="btnLearned">已学习单词</button>
       <button type="button" class="btn" id="btnMall">商城</button>
-      <button type="button" class="btn" id="btnAccount">账户</button>
+      <button type="button" class="btn" id="btnAccount" onclick="if(window.openAccountModal)window.openAccountModal()">账户</button>
     </div>
   </header>
 
@@ -268,6 +274,9 @@
             var user=(document.getElementById('gateUsername')&&document.getElementById('gateUsername').value||'').trim();
             var pwd=document.getElementById('gatePassword')?document.getElementById('gatePassword').value:'';
             if(!user){ alert('请输入账号'); return; }
+            var blRaw=localStorage.getItem('mech_blacklist')||'[]';
+            var blacklist=[]; try{ blacklist=JSON.parse(blRaw); }catch(e){}
+            if(blacklist.indexOf(user)>=0){ alert('已经冻结'); return; }
             var raw=localStorage.getItem('mech_accounts')||'{}';
             var accounts={};
             try{ accounts=JSON.parse(raw); }catch(e){}
@@ -507,6 +516,16 @@
       <button type="button" class="btn" id="btnRecommendStart">开始学习</button>
       <div id="recommendCardArea" class="hide"></div>
     </div>
+
+    <!-- 管理页（仅 Entelch）：账户列表、修改/删除/拉黑 -->
+    <div id="pageAdmin" class="page">
+      <div class="top-bar">
+        <h2>账户管理</h2>
+        <button type="button" class="btn" id="btnBackFromAdmin">返回</button>
+      </div>
+      <p class="login-gate-tip" style="margin-bottom:12px;">仅管理员 Entelch 可操作。可修改密码、删除账户或拉入黑名单（冻结后需管理员取消黑名单才能登录）。</p>
+      <div id="adminAccountList"></div>
+    </div>
   </main>
 
   <!-- 商城弹窗 -->
@@ -583,28 +602,52 @@
     </div>
   </div>
 
-  <!-- 账户弹窗 -->
+  <!-- 账户弹窗：退出、管理（仅 Entelch） -->
   <div id="modalAccount" class="modal-overlay hide">
     <div class="modal-box">
       <button type="button" class="modal-close" id="modalAccountClose">×</button>
       <h3>账户</h3>
-      <p>当前：<strong id="accountStatus">未登录</strong></p>
-      <div id="accountLoginForm">
-        <input type="text" id="inputUsername" placeholder="账号">
-        <input type="password" id="inputPassword" placeholder="密码">
-        <button type="button" class="btn" id="btnLogin">登录</button>
-        <button type="button" class="btn" id="btnShowRegister">注册</button>
-      </div>
-      <div id="accountRegisterForm" class="hide">
-        <input type="text" id="regUsername" placeholder="新账号">
-        <input type="password" id="regPassword" placeholder="新密码">
-        <button type="button" class="btn" id="btnRegister">注册</button>
-        <button type="button" class="btn" id="btnShowLogin">返回登录</button>
+      <p>当前：<strong id="accountModalUser">—</strong></p>
+      <div class="account-modal-actions">
+        <button type="button" class="btn" id="accountModalLogout">退出</button>
+        <button type="button" class="btn" id="accountModalManage" style="display:none">管理</button>
       </div>
     </div>
   </div>
 
-  <!-- 使用相对路径加载脚本，请将 index.html 与 data.js、app.js 放在同一文件夹后打开 -->
+  <!-- 账户弹窗：不依赖 app.js 也能打开 -->
+  <script>
+  (function(){
+    function openAccountModal(){
+      var acc={}; try{ acc=JSON.parse(localStorage.getItem('mech_account')||'{}'); }catch(e){}
+      var u=acc.username||'未登录';
+      var userEl=document.getElementById('accountModalUser');
+      var manageEl=document.getElementById('accountModalManage');
+      var modal=document.getElementById('modalAccount');
+      if(userEl) userEl.textContent=u;
+      if(manageEl) manageEl.style.display=(u==='Entelch')?'':'none';
+      if(modal) modal.classList.remove('hide');
+    }
+    function doLogout(){
+      try{ localStorage.removeItem('mech_account'); }catch(e){}
+      var header=document.getElementById('appHeader');
+      if(header) header.style.display='none';
+      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+      var gate=document.getElementById('pageLoginGate');
+      if(gate) gate.classList.add('active');
+      var modal=document.getElementById('modalAccount');
+      if(modal) modal.classList.add('hide');
+    }
+    window.openAccountModal=openAccountModal;
+    window.doLogout=doLogout;
+    document.addEventListener('DOMContentLoaded',function(){
+      var logoutBtn=document.getElementById('accountModalLogout');
+      var closeBtn=document.getElementById('modalAccountClose');
+      if(logoutBtn) logoutBtn.onclick=doLogout;
+      if(closeBtn) closeBtn.onclick=function(){ var m=document.getElementById('modalAccount'); if(m) m.classList.add('hide'); };
+    });
+  })();
+  </script>
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>

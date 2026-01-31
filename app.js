@@ -14,6 +14,7 @@
     vocabLevelIndex: "mech_vocabLevelIndex",
     account: "mech_account",
     accounts: "mech_accounts",
+    blacklist: "mech_blacklist",
     learnedCount: "mech_learnedCount",
     wordLearnCount: "mech_wordLearnCount"
   };
@@ -119,12 +120,18 @@
     const el4 = document.getElementById("vocabLevelDisplay"); if (el4) el4.textContent = getStr(KEY.vocabLevel) || "未检测";
   }
 
-  // 页面切换（未登录只能看登录门，不能进主页或其它学习页）
+  // 页面切换（未登录只能看登录门；黑名单用户强制退出）
   function showPage(pageId) {
     var acc = getAccount();
+    var blacklist = getBlacklist();
+    if (acc && acc.username && blacklist.indexOf(acc.username) >= 0) {
+      setAccount({});
+      if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "none";
+      pageId = "pageLoginGate";
+    }
     if (!acc || !acc.username) {
       if (pageId !== "pageLoginGate") {
-        document.getElementById("appHeader").style.display = "none";
+        if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "none";
         pageId = "pageLoginGate";
       }
     }
@@ -144,11 +151,16 @@
   }
   function initAuthGate() {
     const acc = getAccount();
+    const blacklist = getBlacklist();
+    if (acc && acc.username && blacklist.indexOf(acc.username) >= 0) {
+      setAccount({});
+      acc.username = "";
+    }
     if (!acc || !acc.username) {
-      document.getElementById("appHeader").style.display = "none";
+      if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "none";
       showPage("pageLoginGate");
     } else {
-      document.getElementById("appHeader").style.display = "";
+      if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "";
       showPage("pageHome");
     }
   }
@@ -260,6 +272,8 @@
   function setAccount(o) { setJSON(KEY.account, o); }
   function getAccounts() { return getJSON(KEY.accounts, {}); }
   function setAccounts(o) { setJSON(KEY.accounts, o); }
+  function getBlacklist() { return getJSON(KEY.blacklist, []); }
+  function setBlacklist(arr) { setJSON(KEY.blacklist, Array.isArray(arr) ? arr : []); }
 
   function buildUserData() {
     return {
@@ -830,63 +844,121 @@
 
   document.getElementById("btnAccount").onclick = function() {
     const acc = getAccount();
-    document.getElementById("accountStatus").textContent = acc.username ? acc.username : "未登录";
-    document.getElementById("accountLoginForm").classList.remove("hide");
-    document.getElementById("accountRegisterForm").classList.add("hide");
+    const userEl = document.getElementById("accountModalUser");
+    const manageEl = document.getElementById("accountModalManage");
+    if (userEl) userEl.textContent = acc.username ? acc.username : "未登录";
+    if (manageEl) manageEl.style.display = (acc.username === "Entelch") ? "" : "none";
     document.getElementById("modalAccount").classList.remove("hide");
   };
   document.getElementById("modalAccountClose").onclick = function() { document.getElementById("modalAccount").classList.add("hide"); };
-  document.getElementById("btnLogin").onclick = function() {
-    const user = (document.getElementById("inputUsername").value || "").trim();
-    const pwd = document.getElementById("inputPassword").value || "";
-    if (!user) { alert("请输入账号"); return; }
-    const accounts = getAccounts();
-    if (accounts[user] && accounts[user] !== pwd) { alert("密码错误"); return; }
-    setAccount({ username: user, password: pwd });
-    document.getElementById("accountStatus").textContent = user;
+  document.getElementById("accountModalLogout").onclick = function() {
+    setAccount({});
+    if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "none";
+    document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
+    document.getElementById("pageLoginGate").classList.add("active");
     document.getElementById("modalAccount").classList.add("hide");
-    if (SYNC_API_URL) {
-      syncFromServer(function(ok) {
-        if (!ok) syncFromAccount();
-        refreshHeader();
-        alert(ok ? "登录成功，数据已从服务器同步" : "登录成功，使用本地数据");
-      });
-    } else {
-      syncFromAccount();
-      refreshHeader();
-      alert("登录成功，数据已同步");
-    }
   };
-  document.getElementById("btnShowRegister").onclick = function() {
-    document.getElementById("accountLoginForm").classList.add("hide");
-    document.getElementById("accountRegisterForm").classList.remove("hide");
+  document.getElementById("accountModalManage").onclick = function() {
+    document.getElementById("modalAccount").classList.add("hide");
+    showPage("pageAdmin");
+    fillAdminList();
   };
-  document.getElementById("btnRegister").onclick = function() {
-    const user = (document.getElementById("regUsername").value || "").trim();
-    const pwd = document.getElementById("regPassword").value || "";
-    if (!user) { alert("请输入新账号"); return; }
-    const accounts = getAccounts();
-    if (accounts[user]) { alert("该账号已存在"); return; }
-    accounts[user] = pwd;
-    setAccounts(accounts);
-    setAccount({ username: user, password: pwd });
-    document.getElementById("accountRegisterForm").classList.add("hide");
-    document.getElementById("accountLoginForm").classList.remove("hide");
-    document.getElementById("accountStatus").textContent = user;
-    alert("注册成功，已自动登录");
-  };
-  document.getElementById("btnShowLogin").onclick = function() {
-    document.getElementById("accountRegisterForm").classList.add("hide");
-    document.getElementById("accountLoginForm").classList.remove("hide");
-  };
+  document.getElementById("btnBackFromAdmin").onclick = function() { showPage("pageHome"); };
+  function formatStudyTime(ms) {
+    if (ms == null || isNaN(ms)) return "0分0秒";
+    var m = Math.floor(ms / 60000);
+    var s = Math.floor((ms % 60000) / 1000);
+    return m + "分" + s + "秒";
+  }
+  function fillAdminList() {
+    var listEl = document.getElementById("adminAccountList");
+    if (!listEl) return;
+    var accounts = getAccounts();
+    var blacklist = getBlacklist();
+    var html = "";
+    Object.keys(accounts).forEach(function(username) {
+      var pwd = accounts[username];
+      var userKey = "mech_user_" + username;
+      var raw = localStorage.getItem(userKey);
+      var data = {};
+      try { if (raw) data = JSON.parse(raw); } catch (e) {}
+      var signInDays = data.signInDays != null ? data.signInDays : 0;
+      var studyMsToday = data.studyMsToday != null ? data.studyMsToday : 0;
+      var vocabLevel = data.vocabLevel || "未检测";
+      var coins = data.coins != null ? data.coins : 0;
+      var frozen = blacklist.indexOf(username) >= 0;
+      html += '<div class="admin-account-item' + (frozen ? ' frozen' : '') + '" data-username="' + username.replace(/"/g, "&quot;") + '">';
+      html += '<h4>账户：' + username + (frozen ? ' <span style="color:#c45c4a;">(已冻结)</span>' : '') + '</h4>';
+      html += '<p class="admin-stats">密码：' + pwd + ' | 连续签到：' + signInDays + ' 天 | 今日学习：' + formatStudyTime(studyMsToday) + ' | 词汇量：' + vocabLevel + ' | 金币：' + coins + '</p>';
+      html += '<div class="admin-actions">';
+      html += '<button type="button" class="btn admin-btn-edit">修改密码</button>';
+      html += '<button type="button" class="btn admin-btn-delete">删除账户</button>';
+      if (frozen) {
+        html += '<button type="button" class="btn admin-btn-unblacklist">取消黑名单</button>';
+      } else {
+        html += '<button type="button" class="btn admin-btn-blacklist">拉入黑名单</button>';
+      }
+      html += '</div></div>';
+    });
+    listEl.innerHTML = html || "<p class=\"login-gate-tip\">暂无账户</p>";
+    listEl.querySelectorAll(".admin-account-item").forEach(function(item) {
+      var username = item.getAttribute("data-username");
+      var editBtn = item.querySelector(".admin-btn-edit");
+      if (editBtn) editBtn.onclick = function() {
+        var newPwd = prompt("输入新密码（仅英文、数字）", "");
+        if (newPwd == null) return;
+        if (!/^[a-zA-Z0-9]+$/.test(newPwd)) { alert("密码只能使用英文字母和数字"); return; }
+        var ac = getAccounts();
+        ac[username] = newPwd;
+        setAccounts(ac);
+        fillAdminList();
+        alert("已修改");
+      };
+      var delBtn = item.querySelector(".admin-btn-delete");
+      if (delBtn) delBtn.onclick = function() {
+        if (!confirm("确定删除账户 " + username + "？")) return;
+        var ac = getAccounts();
+        delete ac[username];
+        setAccounts(ac);
+        try { localStorage.removeItem("mech_user_" + username); } catch (e) {}
+        fillAdminList();
+        alert("已删除");
+      };
+      var blacklistBtn = item.querySelector(".admin-btn-blacklist");
+      if (blacklistBtn) blacklistBtn.onclick = function() {
+        if (!confirm("确定将 " + username + " 拉入黑名单？该用户将被踢出并无法登录直至取消黑名单。")) return;
+        var bl = getBlacklist();
+        if (bl.indexOf(username) < 0) bl.push(username);
+        setBlacklist(bl);
+        var acc = getAccount();
+        if (acc && acc.username === username) {
+          setAccount({});
+          if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "none";
+          document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
+          document.getElementById("pageLoginGate").classList.add("active");
+        }
+        fillAdminList();
+        alert("已拉入黑名单");
+      };
+      var unblacklistBtn = item.querySelector(".admin-btn-unblacklist");
+      if (unblacklistBtn) unblacklistBtn.onclick = function() {
+        var bl = getBlacklist().filter(function(u) { return u !== username; });
+        setBlacklist(bl);
+        fillAdminList();
+        alert("已取消黑名单");
+      };
+    });
+  }
 
   // 登录门页：登录
   document.getElementById("gateBtnLogin").onclick = function() {
     const user = (document.getElementById("gateUsername").value || "").trim();
     const pwd = document.getElementById("gatePassword").value || "";
     if (!user) { alert("请输入账号"); return; }
+    if (getBlacklist().indexOf(user) >= 0) { alert("已经冻结"); return; }
     const accounts = getAccounts();
-    if (accounts[user] && accounts[user] !== pwd) { alert("密码错误"); return; }
+    if (!accounts[user]) { alert("登录失败"); return; }
+    if (accounts[user] !== pwd) { alert("密码错误"); return; }
     setAccount({ username: user, password: pwd });
     if (SYNC_API_URL) {
       syncFromServer(function(ok) {
@@ -1363,6 +1435,8 @@
   function setAccount(o) { setJSON(KEY.account, o); }
   function getAccounts() { return getJSON(KEY.accounts, {}); }
   function setAccounts(o) { setJSON(KEY.accounts, o); }
+  function getBlacklist() { return getJSON(KEY.blacklist, []); }
+  function setBlacklist(arr) { setJSON(KEY.blacklist, Array.isArray(arr) ? arr : []); }
 
   function buildUserData() {
     return {
@@ -1933,55 +2007,111 @@
 
   document.getElementById("btnAccount").onclick = function() {
     const acc = getAccount();
-    document.getElementById("accountStatus").textContent = acc.username ? acc.username : "未登录";
-    document.getElementById("accountLoginForm").classList.remove("hide");
-    document.getElementById("accountRegisterForm").classList.add("hide");
+    const userEl = document.getElementById("accountModalUser");
+    const manageEl = document.getElementById("accountModalManage");
+    if (userEl) userEl.textContent = acc.username ? acc.username : "未登录";
+    if (manageEl) manageEl.style.display = (acc.username === "Entelch") ? "" : "none";
     document.getElementById("modalAccount").classList.remove("hide");
   };
   document.getElementById("modalAccountClose").onclick = function() { document.getElementById("modalAccount").classList.add("hide"); };
-  document.getElementById("btnLogin").onclick = function() {
-    const user = (document.getElementById("inputUsername").value || "").trim();
-    const pwd = document.getElementById("inputPassword").value || "";
-    if (!user) { alert("请输入账号"); return; }
-    const accounts = getAccounts();
-    if (accounts[user] && accounts[user] !== pwd) { alert("密码错误"); return; }
-    setAccount({ username: user, password: pwd });
-    document.getElementById("accountStatus").textContent = user;
+  document.getElementById("accountModalLogout").onclick = function() {
+    setAccount({});
+    if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "none";
+    document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
+    document.getElementById("pageLoginGate").classList.add("active");
     document.getElementById("modalAccount").classList.add("hide");
-    if (SYNC_API_URL) {
-      syncFromServer(function(ok) {
-        if (!ok) syncFromAccount();
-        refreshHeader();
-        alert(ok ? "登录成功，数据已从服务器同步" : "登录成功，使用本地数据");
-      });
-    } else {
-      syncFromAccount();
-      refreshHeader();
-      alert("登录成功，数据已同步");
-    }
   };
-  document.getElementById("btnShowRegister").onclick = function() {
-    document.getElementById("accountLoginForm").classList.add("hide");
-    document.getElementById("accountRegisterForm").classList.remove("hide");
+  document.getElementById("accountModalManage").onclick = function() {
+    document.getElementById("modalAccount").classList.add("hide");
+    showPage("pageAdmin");
+    fillAdminList();
   };
-  document.getElementById("btnRegister").onclick = function() {
-    const user = (document.getElementById("regUsername").value || "").trim();
-    const pwd = document.getElementById("regPassword").value || "";
-    if (!user) { alert("请输入新账号"); return; }
-    const accounts = getAccounts();
-    if (accounts[user]) { alert("该账号已存在"); return; }
-    accounts[user] = pwd;
-    setAccounts(accounts);
-    setAccount({ username: user, password: pwd });
-    document.getElementById("accountRegisterForm").classList.add("hide");
-    document.getElementById("accountLoginForm").classList.remove("hide");
-    document.getElementById("accountStatus").textContent = user;
-    alert("注册成功，已自动登录");
-  };
-  document.getElementById("btnShowLogin").onclick = function() {
-    document.getElementById("accountRegisterForm").classList.add("hide");
-    document.getElementById("accountLoginForm").classList.remove("hide");
-  };
+  document.getElementById("btnBackFromAdmin").onclick = function() { showPage("pageHome"); };
+  function formatStudyTime(ms) {
+    if (ms == null || isNaN(ms)) return "0分0秒";
+    var m = Math.floor(ms / 60000);
+    var s = Math.floor((ms % 60000) / 1000);
+    return m + "分" + s + "秒";
+  }
+  function fillAdminList() {
+    var listEl = document.getElementById("adminAccountList");
+    if (!listEl) return;
+    var accounts = getAccounts();
+    var blacklist = getBlacklist();
+    var html = "";
+    Object.keys(accounts).forEach(function(username) {
+      var pwd = accounts[username];
+      var userKey = "mech_user_" + username;
+      var raw = localStorage.getItem(userKey);
+      var data = {};
+      try { if (raw) data = JSON.parse(raw); } catch (e) {}
+      var signInDays = data.signInDays != null ? data.signInDays : 0;
+      var studyMsToday = data.studyMsToday != null ? data.studyMsToday : 0;
+      var vocabLevel = data.vocabLevel || "未检测";
+      var coins = data.coins != null ? data.coins : 0;
+      var frozen = blacklist.indexOf(username) >= 0;
+      html += '<div class="admin-account-item' + (frozen ? ' frozen' : '') + '" data-username="' + username.replace(/"/g, "&quot;") + '">';
+      html += '<h4>账户：' + username + (frozen ? ' <span style="color:#c45c4a;">(已冻结)</span>' : '') + '</h4>';
+      html += '<p class="admin-stats">密码：' + pwd + ' | 连续签到：' + signInDays + ' 天 | 今日学习：' + formatStudyTime(studyMsToday) + ' | 词汇量：' + vocabLevel + ' | 金币：' + coins + '</p>';
+      html += '<div class="admin-actions">';
+      html += '<button type="button" class="btn admin-btn-edit">修改密码</button>';
+      html += '<button type="button" class="btn admin-btn-delete">删除账户</button>';
+      if (frozen) {
+        html += '<button type="button" class="btn admin-btn-unblacklist">取消黑名单</button>';
+      } else {
+        html += '<button type="button" class="btn admin-btn-blacklist">拉入黑名单</button>';
+      }
+      html += '</div></div>';
+    });
+    listEl.innerHTML = html || "<p class=\"login-gate-tip\">暂无账户</p>";
+    listEl.querySelectorAll(".admin-account-item").forEach(function(item) {
+      var username = item.getAttribute("data-username");
+      var editBtn = item.querySelector(".admin-btn-edit");
+      if (editBtn) editBtn.onclick = function() {
+        var newPwd = prompt("输入新密码（仅英文、数字）", "");
+        if (newPwd == null) return;
+        if (!/^[a-zA-Z0-9]+$/.test(newPwd)) { alert("密码只能使用英文字母和数字"); return; }
+        var ac = getAccounts();
+        ac[username] = newPwd;
+        setAccounts(ac);
+        fillAdminList();
+        alert("已修改");
+      };
+      var delBtn = item.querySelector(".admin-btn-delete");
+      if (delBtn) delBtn.onclick = function() {
+        if (!confirm("确定删除账户 " + username + "？")) return;
+        var ac = getAccounts();
+        delete ac[username];
+        setAccounts(ac);
+        try { localStorage.removeItem("mech_user_" + username); } catch (e) {}
+        fillAdminList();
+        alert("已删除");
+      };
+      var blacklistBtn = item.querySelector(".admin-btn-blacklist");
+      if (blacklistBtn) blacklistBtn.onclick = function() {
+        if (!confirm("确定将 " + username + " 拉入黑名单？该用户将被踢出并无法登录直至取消黑名单。")) return;
+        var bl = getBlacklist();
+        if (bl.indexOf(username) < 0) bl.push(username);
+        setBlacklist(bl);
+        var acc = getAccount();
+        if (acc && acc.username === username) {
+          setAccount({});
+          if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "none";
+          document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
+          document.getElementById("pageLoginGate").classList.add("active");
+        }
+        fillAdminList();
+        alert("已拉入黑名单");
+      };
+      var unblacklistBtn = item.querySelector(".admin-btn-unblacklist");
+      if (unblacklistBtn) unblacklistBtn.onclick = function() {
+        var bl = getBlacklist().filter(function(u) { return u !== username; });
+        setBlacklist(bl);
+        fillAdminList();
+        alert("已取消黑名单");
+      };
+    });
+  }
 
   // 搜索/翻译：内部调用免费翻译接口，结果若为英文则字母可点开单词卡
   function hasChinese(text) {
