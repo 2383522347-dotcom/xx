@@ -1229,6 +1229,7 @@
   refreshHeader();
   setInterval(refreshHeader, 1000);
 })();
+if (false) {
   function setNum(k, n) { localStorage.setItem(k, String(n)); }
   function getStr(k, def) { return localStorage.getItem(k) || def || ""; }
   function setStr(k, s) { localStorage.setItem(k, s || ""); }
@@ -2335,3 +2336,4 @@
   refreshHeader();
   setInterval(refreshHeader, 1000);
 })();
+}
