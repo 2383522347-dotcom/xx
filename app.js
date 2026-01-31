@@ -167,8 +167,7 @@
 
   // 单词本列表
   const WORD_BOOKS = {
-    "26国集训一轮单词": WORD_BOOK_26,
-    "基础操作词汇": WORD_BOOK_BASIC
+    "25年国集训1轮单词": WORD_BOOK_25
   };
 
   // 基础单词分级词库（小学/初中/高中/大学/出国/雅思/托福/哈佛）
@@ -574,7 +573,7 @@
   document.getElementById("btnBasicConfirm").onclick = function() {
     const sel = document.getElementById("basicLevelSelect");
     const level = sel ? sel.options[sel.selectedIndex].text.trim() : "初中";
-    const levelList = BASIC_LEVEL_BOOKS[level] || WORD_BOOK_BASIC;
+    const levelList = BASIC_LEVEL_BOOKS[level] || WORD_BOOK_25;
     currentBookName = "基础单词-" + level;
     currentWordList = levelList.slice();
     currentWordIndex = 0;
@@ -584,7 +583,7 @@
   };
 
   // 词汇量检测：开始后进入答题界面，单词卡 + 提交 / 我不会 + 实时进度
-  const VOCAB_POOL = WORD_BOOK_26.concat(WORD_BOOK_BASIC);
+  const VOCAB_POOL = WORD_BOOK_25;
   let vocabTestQi = 0;
   let vocabTestAnswers = [];
 
@@ -662,7 +661,7 @@
     if (!level) { hint.textContent = "请先完成「单词词汇量检测」获得等级后再使用推荐学习。"; return; }
     const learned = getJSON(KEY.learnedWords);
     const learnedSet = {}; learned.forEach(function(x) { learnedSet[x.en] = true; });
-    const pool = WORD_BOOK_26.filter(function(w) { return !learnedSet[w.en]; });
+    const pool = WORD_BOOK_25.filter(function(w) { return !learnedSet[w.en]; });
     if (pool.length === 0) { hint.textContent = "当前等级下推荐词已学完，请继续学习或复习。"; return; }
     hint.textContent = "根据你的等级（" + level + "），推荐学习以下未掌握词汇。共 " + Math.min(20, pool.length) + " 个。";
     currentWordList = pool.slice().sort(function() { return Math.random() - 0.5; }).slice(0, 20);
@@ -1073,7 +1072,7 @@
   }
   function findWordInBooks(word) {
     var lower = (word || "").toLowerCase().trim();
-    var books = [WORD_BOOK_26, WORD_BOOK_BASIC];
+    var books = [WORD_BOOK_25];
     for (var b = 0; b < books.length; b++) {
       for (var i = 0; i < books[b].length; i++) {
         var w = books[b][i];
@@ -1084,7 +1083,7 @@
   }
   function findWordInAllBooks(word) {
     var lower = (word || "").toLowerCase().trim();
-    var books = [WORD_BOOK_26, WORD_BOOK_BASIC];
+    var books = [WORD_BOOK_25];
     var levelNames = ["小学", "初中", "高中", "大学", "出国", "雅思", "托福", "哈佛"];
     for (var b = 0; b < books.length; b++) {
       for (var i = 0; i < books[b].length; i++) {
@@ -1339,8 +1338,7 @@ if (false) {
 
   // 单词本列表
   const WORD_BOOKS = {
-    "26国集训一轮单词": WORD_BOOK_26,
-    "基础操作词汇": WORD_BOOK_BASIC
+    "25年国集训1轮单词": WORD_BOOK_25
   };
 
   // 基础单词分级词库（小学/初中/高中/大学/出国/雅思/托福/哈佛）
@@ -1746,7 +1744,7 @@ if (false) {
   document.getElementById("btnBasicConfirm").onclick = function() {
     const sel = document.getElementById("basicLevelSelect");
     const level = sel ? sel.options[sel.selectedIndex].text.trim() : "初中";
-    const levelList = BASIC_LEVEL_BOOKS[level] || WORD_BOOK_BASIC;
+    const levelList = BASIC_LEVEL_BOOKS[level] || WORD_BOOK_25;
     currentBookName = "基础单词-" + level;
     currentWordList = levelList.slice();
     currentWordIndex = 0;
@@ -1756,7 +1754,7 @@ if (false) {
   };
 
   // 词汇量检测：开始后进入答题界面，单词卡 + 提交 / 我不会 + 实时进度
-  const VOCAB_POOL = WORD_BOOK_26.concat(WORD_BOOK_BASIC);
+  const VOCAB_POOL = WORD_BOOK_25;
   let vocabTestQi = 0;
   let vocabTestAnswers = [];
 
@@ -1834,7 +1832,7 @@ if (false) {
     if (!level) { hint.textContent = "请先完成「单词词汇量检测」获得等级后再使用推荐学习。"; return; }
     const learned = getJSON(KEY.learnedWords);
     const learnedSet = {}; learned.forEach(function(x) { learnedSet[x.en] = true; });
-    const pool = WORD_BOOK_26.filter(function(w) { return !learnedSet[w.en]; });
+    const pool = WORD_BOOK_25.filter(function(w) { return !learnedSet[w.en]; });
     if (pool.length === 0) { hint.textContent = "当前等级下推荐词已学完，请继续学习或复习。"; return; }
     hint.textContent = "根据你的等级（" + level + "），推荐学习以下未掌握词汇。共 " + Math.min(20, pool.length) + " 个。";
     currentWordList = pool.slice().sort(function() { return Math.random() - 0.5; }).slice(0, 20);
@@ -2180,7 +2178,7 @@ if (false) {
   }
   function findWordInBooks(word) {
     var lower = (word || "").toLowerCase().trim();
-    var books = [WORD_BOOK_26, WORD_BOOK_BASIC];
+    var books = [WORD_BOOK_25];
     for (var b = 0; b < books.length; b++) {
       for (var i = 0; i < books[b].length; i++) {
         var w = books[b][i];
@@ -2191,7 +2189,7 @@ if (false) {
   }
   function findWordInAllBooks(word) {
     var lower = (word || "").toLowerCase().trim();
-    var books = [WORD_BOOK_26, WORD_BOOK_BASIC];
+    var books = [WORD_BOOK_25];
     var levelNames = ["小学", "初中", "高中", "大学", "出国", "雅思", "托福", "哈佛"];
     for (var b = 0; b < books.length; b++) {
       for (var i = 0; i < books[b].length; i++) {

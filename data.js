@@ -1,5 +1,5 @@
-// 26国集训一轮单词 (100词)
-const WORD_BOOK_26 = [
+// 25年国集训1轮单词 (150词：100专业词 + 50基础操作词)
+const WORD_BOOK_25 = [
   { en: "Station", phonetic: "/ˈsteɪʃ(ə)n/", cn: "操作站" },
   { en: "Handling station", phonetic: "/ˈhændlɪŋ/", cn: "操作手站/搬运站" },
   { en: "Sensor", phonetic: "/ˈsensə(r)/", cn: "传感器" },
@@ -99,16 +99,9 @@ const WORD_BOOK_26 = [
   { en: "Network", phonetic: "", cn: "网络" },
   { en: "Interface / interfacing", phonetic: "", cn: "接口/系统互连" },
   { en: "Datasheet", phonetic: "", cn: "数据表" },
-  { en: "Mechatronics", phonetic: "", cn: "机电一体化" }
-];
-
-// 基础操作词汇 (50词)
-const WORD_BOOK_BASIC = [
+  { en: "Mechatronics", phonetic: "", cn: "机电一体化" },
   { en: "Yes", phonetic: "", cn: "是" },
   { en: "No", phonetic: "", cn: "否" },
-  { en: "Start", phonetic: "", cn: "开始" },
-  { en: "Stop", phonetic: "", cn: "停止" },
-  { en: "Reset", phonetic: "", cn: "复位" },
   { en: "Ready", phonetic: "", cn: "准备好" },
   { en: "Go", phonetic: "", cn: "进行/走" },
   { en: "Wait", phonetic: "", cn: "等待" },
