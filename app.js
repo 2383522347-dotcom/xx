@@ -908,17 +908,7 @@
     document.getElementById("gateRegUsername").value = "";
     document.getElementById("gateRegPassword").value = "";
     document.getElementById("gateRegPasswordConfirm").value = "";
-    document.getElementById("gateBtnRegister").disabled = true;
   };
-  function updateGateRegisterBtn() {
-    var pwd = (document.getElementById("gateRegPassword").value || "").trim();
-    var confirmPwd = (document.getElementById("gateRegPasswordConfirm").value || "").trim();
-    var user = (document.getElementById("gateRegUsername").value || "").trim();
-    document.getElementById("gateBtnRegister").disabled = !user || !pwd || pwd !== confirmPwd;
-  }
-  document.getElementById("gateRegUsername").addEventListener("input", updateGateRegisterBtn);
-  document.getElementById("gateRegPassword").addEventListener("input", updateGateRegisterBtn);
-  document.getElementById("gateRegPasswordConfirm").addEventListener("input", updateGateRegisterBtn);
   document.getElementById("gateBtnRegister").onclick = function() {
     var user = (document.getElementById("gateRegUsername").value || "").trim();
     var pwd = document.getElementById("gateRegPassword").value || "";
@@ -934,7 +924,6 @@
     document.getElementById("gateRegPasswordConfirm").value = "";
     document.getElementById("gateRegisterForm").classList.add("hide");
     document.getElementById("gateLoginForm").classList.remove("hide");
-    document.getElementById("gateBtnRegister").disabled = true;
     alert("注册成功");
   };
   document.getElementById("gateBtnShowLogin").onclick = function() {
