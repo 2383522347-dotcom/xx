@@ -1301,6 +1301,8 @@
         }
         clearUserState();
         setAccount({ username: user, password: pwd });
+        var ac = getAccounts();
+        if (!ac[user]) { ac[user] = pwd; setAccounts(ac); }
         applyUserData(data || {});
         if (Object.keys(data || {}).length === 0) syncFromAccount();
         syncToAccount();
@@ -1342,6 +1344,8 @@
         if (!ok) { alert(errMsg || "注册失败"); return; }
         clearUserState();
         setAccount({ username: user, password: pwd });
+        var ac = getAccounts();
+        if (!ac[user]) { ac[user] = pwd; setAccounts(ac); }
         applyUserData({});
         document.getElementById("gateRegUsername").value = "";
         document.getElementById("gateRegPassword").value = "";
