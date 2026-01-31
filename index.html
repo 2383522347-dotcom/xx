@@ -645,10 +645,29 @@
       var admin=document.getElementById('pageAdmin');
       if(admin) admin.classList.add('active');
       var listEl=document.getElementById('adminAccountList');
-      if(listEl){
-        if(typeof window.fillAdminList==='function') window.fillAdminList();
-        else listEl.innerHTML='<p class="login-gate-tip">暂无账户</p>';
-      }
+      if(!listEl) return;
+      if(typeof window.fillAdminList==='function'){ window.fillAdminList(); return; }
+      var raw=localStorage.getItem('mech_accounts')||'{}';
+      var accounts={}; try{ accounts=JSON.parse(raw); }catch(e){}
+      var blRaw=localStorage.getItem('mech_blacklist')||'[]';
+      var blacklist=[]; try{ blacklist=JSON.parse(blRaw); }catch(e){}
+      var html='';
+      Object.keys(accounts).forEach(function(username){
+        var pwd=accounts[username];
+        var userKey='mech_user_'+username;
+        var data={}; try{ var d=localStorage.getItem(userKey); if(d) data=JSON.parse(d); }catch(e){}
+        var signInDays=data.signInDays!=null?data.signInDays:0;
+        var studyMs=data.studyMsToday!=null?data.studyMsToday:0;
+        var ms=Math.floor(studyMs/60000); var s=Math.floor((studyMs%60000)/1000);
+        var studyStr=ms+'分'+s+'秒';
+        var vocabLevel=data.vocabLevel||'未检测';
+        var coins=data.coins!=null?data.coins:0;
+        var frozen=blacklist.indexOf(username)>=0;
+        html+='<div class="admin-account-item'+(frozen?' frozen':'')+'"><h4>账户：'+username+(frozen?' <span style="color:#c45c4a;">(已冻结)</span>':'')+'</h4>';
+        html+='<p class="admin-stats">密码：'+pwd+' | 连续签到：'+signInDays+' 天 | 今日学习：'+studyStr+' | 词汇量：'+vocabLevel+' | 金币：'+coins+'</p>';
+        html+='<p class="login-gate-tip" style="font-size:12px;margin-top:6px;">修改/删除/拉黑需刷新页面后使用管理</p></div>';
+      });
+      listEl.innerHTML=html||'<p class="login-gate-tip">暂无账户</p>';
     }
     function goBackToHome(){
       document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
