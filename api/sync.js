@@ -54,56 +54,80 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { username, password, data } = req.body || {};
-  if (!username || !password) {
-    return res.status(400).json({ error: "缺少 username 或 password" });
-  }
+  try {
+    // 调试：若缺少 Redis 环境变量，直接返回原因，便于排查 500
+    const url = process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+    if (!url || !token) {
+      return res.status(500).json({
+        error: "Missing Redis env",
+        debug: { hasUrl: !!url, hasToken: !!token },
+      });
+    }
 
-  const key = "mech:" + String(username).trim();
-  const stored = await getStored(key);
-  let obj = null;
-  if (stored) {
-    try {
-      obj = typeof stored === "string" ? JSON.parse(stored) : stored;
-    } catch (e) {}
-  }
+    const { username, password, data } = req.body || {};
+    if (!username || !password) {
+      return res.status(400).json({ error: "缺少 username 或 password" });
+    }
 
-  if (data !== undefined) {
-    if (obj && obj.password !== password) {
+    const key = "mech:" + String(username).trim();
+    const stored = await getStored(key);
+    let obj = null;
+    if (stored) {
+      try {
+        obj = typeof stored === "string" ? JSON.parse(stored) : stored;
+      } catch (e) {}
+    }
+
+    if (data !== undefined) {
+      if (obj && obj.password !== password) {
+        return res.status(401).json({ error: "密码错误" });
+      }
+      const merged = { ...data };
+      if (obj && obj.data && typeof obj.data === "object") {
+        const existing = obj.data;
+        if (existing.studyDate && merged.studyDate === existing.studyDate) {
+          const a = Number(existing.studyMsToday) || 0;
+          const b = Number(merged.studyMsToday) || 0;
+          merged.studyMsToday = Math.max(a, b);
+        }
+        merged.coins = Math.max(Number(existing.coins) || 0, Number(merged.coins) || 0);
+        if (existing.vocabLevelIndex !== undefined && existing.vocabLevelIndex !== null && merged.vocabLevelIndex !== undefined && merged.vocabLevelIndex !== null) {
+          var ei = Number(existing.vocabLevelIndex) || 0;
+          var mi = Number(merged.vocabLevelIndex) || 0;
+          merged.vocabLevelIndex = Math.max(ei, mi);
+          merged.vocabLevel = mi >= ei ? (merged.vocabLevel || existing.vocabLevel) : (existing.vocabLevel || merged.vocabLevel);
+        }
+        if (Array.isArray(existing.learnedWords) || Array.isArray(merged.learnedWords)) {
+          const set = {};
+          (existing.learnedWords || []).forEach(function (w) { set[(w && w.en) || ""] = w; });
+          (merged.learnedWords || []).forEach(function (w) { set[(w && w.en) || ""] = w; });
+          merged.learnedWords = Object.keys(set).filter(Boolean).map(function (k) { return set[k]; });
+        }
+      }
+      const toSave = { password: obj ? obj.password : password, data: merged };
+      const ok = await setStored(key, JSON.stringify(toSave));
+      if (!ok) {
+        return res.status(500).json({
+          error: "保存失败",
+          debug: "redisSet returned false (Upstash API 可能未返回 OK)",
+        });
+      }
+      return res.status(200).json({ ok: true, data: merged });
+    }
+
+    // 拉取：无账号返回 401，任意设备可凭账号密码登录
+    if (!obj) return res.status(401).json({ error: "账号不存在" });
+    if (obj.password !== password) {
       return res.status(401).json({ error: "密码错误" });
     }
-    const merged = { ...data };
-    if (obj && obj.data && typeof obj.data === "object") {
-      const existing = obj.data;
-      if (existing.studyDate && merged.studyDate === existing.studyDate) {
-        const a = Number(existing.studyMsToday) || 0;
-        const b = Number(merged.studyMsToday) || 0;
-        merged.studyMsToday = Math.max(a, b);
-      }
-      merged.coins = Math.max(Number(existing.coins) || 0, Number(merged.coins) || 0);
-      if (existing.vocabLevelIndex !== undefined && existing.vocabLevelIndex !== null && merged.vocabLevelIndex !== undefined && merged.vocabLevelIndex !== null) {
-        var ei = Number(existing.vocabLevelIndex) || 0;
-        var mi = Number(merged.vocabLevelIndex) || 0;
-        merged.vocabLevelIndex = Math.max(ei, mi);
-        merged.vocabLevel = mi >= ei ? (merged.vocabLevel || existing.vocabLevel) : (existing.vocabLevel || merged.vocabLevel);
-      }
-      if (Array.isArray(existing.learnedWords) || Array.isArray(merged.learnedWords)) {
-        const set = {};
-        (existing.learnedWords || []).forEach(function (w) { set[(w && w.en) || ""] = w; });
-        (merged.learnedWords || []).forEach(function (w) { set[(w && w.en) || ""] = w; });
-        merged.learnedWords = Object.keys(set).filter(Boolean).map(function (k) { return set[k]; });
-      }
-    }
-    const toSave = { password: obj ? obj.password : password, data: merged };
-    const ok = await setStored(key, JSON.stringify(toSave));
-    if (!ok) return res.status(500).json({ error: "保存失败" });
-    return res.status(200).json({ ok: true, data: merged });
+    return res.status(200).json({ data: obj.data || {} });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({
+      error: "保存失败",
+      debug: e.message || String(e),
+      stack: e.stack || "",
+    });
   }
-
-  // 拉取：无账号返回 401，任意设备可凭账号密码登录
-  if (!obj) return res.status(401).json({ error: "账号不存在" });
-  if (obj.password !== password) {
-    return res.status(401).json({ error: "密码错误" });
-  }
-  return res.status(200).json({ data: obj.data || {} });
 }
