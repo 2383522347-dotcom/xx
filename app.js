@@ -334,7 +334,7 @@
   function syncFromServer(cb) {
     const acc = getAccount();
     if (!SYNC_API_URL || !acc.username || !acc.password) {
-      if (cb) cb(false);
+      if (cb) cb(false, false);
       return;
     }
     fetch(SYNC_API_URL + "/sync", {
@@ -347,14 +347,16 @@
         return r.json();
       })
       .then(function(res) {
+        var hadServerData = false;
         if (res && res.data) {
           applyUserData(res.data);
-          if (Object.keys(res.data).length === 0) syncFromAccount();
+          hadServerData = Object.keys(res.data).length > 0;
+          if (!hadServerData) syncFromAccount();
           refreshHeader();
         }
-        if (cb) cb(!!res);
+        if (cb) cb(!!res, hadServerData);
       })
-      .catch(function() { SYNC_API_URL = ""; if (cb) cb(false); });
+      .catch(function() { SYNC_API_URL = ""; if (cb) cb(false, false); });
   }
   function syncToServer() {
     const acc = getAccount();
@@ -865,6 +867,7 @@
   };
   document.getElementById("modalAccountClose").onclick = function() { document.getElementById("modalAccount").classList.add("hide"); };
   document.getElementById("accountModalLogout").onclick = function() {
+    syncToAccount();
     setAccount({});
     if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "none";
     document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
@@ -982,17 +985,18 @@
     if (accounts[user] !== pwd) { alert("密码错误"); return; }
     setAccount({ username: user, password: pwd });
     if (SYNC_API_URL) {
-      syncFromServer(function(ok) {
+      syncFromServer(function(ok, hadServerData) {
         if (!ok) syncFromAccount();
         refreshHeader();
         enterApp();
-        alert(ok ? "登录成功，数据已从服务器同步" : "登录成功，使用本地数据");
+        var msg = (ok && hadServerData) ? "登录成功，数据已从云端恢复（手机/电脑同账号一致）" : "登录成功，已从本机恢复数据；换设备或手机登录请用同一网址打开，数据会自动同步到云端。";
+        alert(msg);
       });
     } else {
       syncFromAccount();
       refreshHeader();
       enterApp();
-      alert("登录成功，数据已同步");
+      alert("登录成功，数据已从本机恢复。多设备同步请通过「同一网址」访问（如 npm start 后的地址或已部署的链接）。");
     }
   };
   document.getElementById("gateBtnShowRegister").onclick = function() {
@@ -1231,7 +1235,14 @@
   window.addEventListener("beforeunload", function() {
     stopStudyTimer();
     syncToAccount();
-    if (SYNC_API_URL) syncToServer();
+    if (SYNC_API_URL) {
+      syncToServer();
+      var acc = getAccount();
+      if (acc.username && acc.password) {
+        var body = JSON.stringify({ username: acc.username, password: acc.password, data: buildUserData() });
+        navigator.sendBeacon(SYNC_API_URL + "/sync", new Blob([body], { type: "application/json" }));
+      }
+    }
   });
 
   refreshHeader();
