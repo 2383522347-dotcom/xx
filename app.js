@@ -173,7 +173,7 @@
     if (!el) return;
     if (SYNC_API_URL) {
       var origin = typeof window !== "undefined" && window.location && window.location.origin ? window.location.origin : "";
-      el.innerHTML = "当前同步地址：<strong>" + origin + "</strong><br>在电脑注册的账号，手机必须打开「同一链接」才能登录。若使用 Vercel 部署，需在项目设置中配置 Upstash Redis，否则账号无法跨设备保存。";
+      el.innerHTML = "当前同步地址：<strong>" + origin + "</strong><br>在电脑注册的账号，手机必须打开「同一链接」才能登录。<br><span style=\"color:var(--text-muted);\">若每次更新/重新部署后账户全没了：请在 Vercel 项目设置中配置 Upstash Redis 并重新部署，账户才会持久保存。</span>";
       el.style.display = "";
     } else {
       el.style.display = "none";
