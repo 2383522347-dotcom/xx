@@ -764,14 +764,33 @@
       }
     }
     window.initLoginState=initLoginState;
+    function bindModuleClicks(){
+      var grid=document.getElementById('mainGrid');
+      if(!grid) return;
+      grid.addEventListener('click',function(e){
+        var card=e.target.closest('.module-card');
+        if(!card) return;
+        var mod=card.getAttribute('data-module');
+        if(!mod) return;
+        var pageMap={ wordLearn:'pageWordBookSelect', scenario:'pageScenario', wordTest:'pageWordTest', basicWord:'pageBasicSelect', vocabTest:'pageVocabTest', recommend:'pageRecommend', reading:'pageReadingSelect' };
+        var pageId=pageMap[mod];
+        if(pageId){
+          document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+          var page=document.getElementById(pageId);
+          if(page) page.classList.add('active');
+        }
+        if(window.onModuleEnter) window.onModuleEnter(mod);
+      });
+    }
     document.addEventListener('DOMContentLoaded',function(){
       initLoginState();
+      bindModuleClicks();
       var logoutBtn=document.getElementById('accountModalLogout');
       var closeBtn=document.getElementById('modalAccountClose');
       if(logoutBtn) logoutBtn.onclick=doLogout;
       if(closeBtn) closeBtn.onclick=function(){ var m=document.getElementById('modalAccount'); if(m) m.classList.add('hide'); };
     });
-    if(document.readyState!=='loading') initLoginState();
+    if(document.readyState!=='loading'){ initLoginState(); bindModuleClicks(); }
   })();
   </script>
   <script src="data.js"></script>
