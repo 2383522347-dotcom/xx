@@ -72,10 +72,32 @@ export default async function handler(req, res) {
     if (obj && obj.password !== password) {
       return res.status(401).json({ error: "密码错误" });
     }
-    const toSave = { password, data };
+    const merged = { ...data };
+    if (obj && obj.data && typeof obj.data === "object") {
+      const existing = obj.data;
+      if (existing.studyDate && merged.studyDate === existing.studyDate) {
+        const a = Number(existing.studyMsToday) || 0;
+        const b = Number(merged.studyMsToday) || 0;
+        merged.studyMsToday = Math.max(a, b);
+      }
+      merged.coins = Math.max(Number(existing.coins) || 0, Number(merged.coins) || 0);
+      if (existing.vocabLevelIndex !== undefined && existing.vocabLevelIndex !== null && merged.vocabLevelIndex !== undefined && merged.vocabLevelIndex !== null) {
+        var ei = Number(existing.vocabLevelIndex) || 0;
+        var mi = Number(merged.vocabLevelIndex) || 0;
+        merged.vocabLevelIndex = Math.max(ei, mi);
+        merged.vocabLevel = mi >= ei ? (merged.vocabLevel || existing.vocabLevel) : (existing.vocabLevel || merged.vocabLevel);
+      }
+      if (Array.isArray(existing.learnedWords) || Array.isArray(merged.learnedWords)) {
+        const set = {};
+        (existing.learnedWords || []).forEach(function (w) { set[(w && w.en) || ""] = w; });
+        (merged.learnedWords || []).forEach(function (w) { set[(w && w.en) || ""] = w; });
+        merged.learnedWords = Object.keys(set).filter(Boolean).map(function (k) { return set[k]; });
+      }
+    }
+    const toSave = { password: obj ? obj.password : password, data: merged };
     const ok = await setStored(key, JSON.stringify(toSave));
     if (!ok) return res.status(500).json({ error: "保存失败" });
-    return res.status(200).json({ ok: true, data: data });
+    return res.status(200).json({ ok: true, data: merged });
   }
 
   // 拉取：无账号返回 401，任意设备可凭账号密码登录

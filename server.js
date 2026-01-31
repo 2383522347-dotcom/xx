@@ -45,7 +45,29 @@ app.post("/api/sync", function(req, res) {
       return res.status(401).json({ error: "密码错误" });
     }
     accounts[username] = password;
-    userData[username] = data;
+    const merged = { ...data };
+    const existing = userData[username];
+    if (existing) {
+      if (existing.studyDate && merged.studyDate === existing.studyDate) {
+        const a = Number(existing.studyMsToday) || 0;
+        const b = Number(merged.studyMsToday) || 0;
+        merged.studyMsToday = Math.max(a, b);
+      }
+      merged.coins = Math.max(Number(existing.coins) || 0, Number(merged.coins) || 0);
+      if (existing.vocabLevelIndex !== undefined && existing.vocabLevelIndex !== null && merged.vocabLevelIndex !== undefined && merged.vocabLevelIndex !== null) {
+        var ei = Number(existing.vocabLevelIndex) || 0;
+        var mi = Number(merged.vocabLevelIndex) || 0;
+        merged.vocabLevelIndex = Math.max(ei, mi);
+        merged.vocabLevel = mi >= ei ? (merged.vocabLevel || existing.vocabLevel) : (existing.vocabLevel || merged.vocabLevel);
+      }
+      if (Array.isArray(existing.learnedWords) || Array.isArray(merged.learnedWords)) {
+        const set = {};
+        (existing.learnedWords || []).forEach(function (w) { set[(w && w.en) || ""] = w; });
+        (merged.learnedWords || []).forEach(function (w) { set[(w && w.en) || ""] = w; });
+        merged.learnedWords = Object.keys(set).filter(Boolean).map(function (k) { return set[k]; });
+      }
+    }
+    userData[username] = merged;
     saveStore(store);
     return res.json({ ok: true, data: userData[username] });
   }

@@ -361,12 +361,36 @@
     if (!d) return;
     if (d.signInDays !== undefined) setNum(KEY.signInDays, d.signInDays);
     if (d.lastSignIn) setStr(KEY.lastSignIn, d.lastSignIn);
-    if (d.studyMsToday !== undefined) setNum(KEY.studyMsToday, d.studyMsToday);
+    if (d.studyMsToday !== undefined) {
+      var today = todayStr();
+      if (d.studyDate === today) {
+        var localMs = getNum(KEY.studyMsToday);
+        var serverMs = Math.max(0, parseInt(d.studyMsToday, 10) || 0);
+        setNum(KEY.studyMsToday, Math.max(localMs, serverMs));
+      } else {
+        setNum(KEY.studyMsToday, Math.max(0, parseInt(d.studyMsToday, 10) || 0));
+      }
+    }
     if (d.studyDate) setStr(KEY.studyDate, d.studyDate);
-    if (d.coins !== undefined) setNum(KEY.coins, d.coins);
-    if (d.learnedWords) setJSON(KEY.learnedWords, d.learnedWords);
+    if (d.coins !== undefined) {
+      var localCoins = getNum(KEY.coins);
+      var serverCoins = Math.max(0, parseInt(d.coins, 10) || 0);
+      setNum(KEY.coins, Math.max(localCoins, serverCoins));
+    }
+    if (d.learnedWords && Array.isArray(d.learnedWords)) {
+      var localWords = getJSON(KEY.learnedWords, []);
+      var byEn = {};
+      localWords.forEach(function (w) { byEn[(w && w.en) || ""] = w; });
+      d.learnedWords.forEach(function (w) { byEn[(w && w.en) || ""] = w; });
+      setJSON(KEY.learnedWords, Object.keys(byEn).filter(Boolean).map(function (k) { return byEn[k]; }));
+    }
     if (d.vocabLevel) setStr(KEY.vocabLevel, d.vocabLevel);
-    if (d.vocabLevelIndex !== undefined) setNum(KEY.vocabLevelIndex, d.vocabLevelIndex);
+    if (d.vocabLevelIndex !== undefined) {
+      var localIdx = getNum(KEY.vocabLevelIndex);
+      var serverIdx = Math.max(0, parseInt(d.vocabLevelIndex, 10) || 0);
+      setNum(KEY.vocabLevelIndex, Math.max(localIdx, serverIdx));
+      if (d.vocabLevel && serverIdx >= localIdx) setStr(KEY.vocabLevel, d.vocabLevel);
+    }
     if (d.forgetReviewDays !== undefined) setNum(KEY.forgetReviewDays, d.forgetReviewDays);
     if (d.learnedCount !== undefined) setNum(KEY.learnedCount, d.learnedCount);
     if (d.wordLearnCount !== undefined) setNum(KEY.wordLearnCount, d.wordLearnCount);
@@ -1014,31 +1038,39 @@
 
   document.getElementById("modalReadingQuizClose").onclick = function() { document.getElementById("modalReadingQuiz").classList.add("hide"); };
   document.getElementById("btnReadingQuizSubmit").onclick = function() {
-    var questions = currentReadingQuizQuestions;
-    if (!questions || questions.length === 0) return;
-    var total = questions.length;
-    var correct = 0;
-    for (var i = 0; i < total; i++) {
-      var chosen = document.querySelector("input[name=\"reading_q_" + i + "\"]:checked");
-      var val = chosen ? parseInt(chosen.value, 10) : -1;
-      var q = questions[i];
-      var right = Math.max(0, Math.min(3, parseInt(q.correct, 10) || 0));
-      if (val === right) correct++;
+    try {
+      var questions = currentReadingQuizQuestions;
+      if (!questions || questions.length === 0) { alert("暂无测验题"); return; }
+      var total = questions.length;
+      var correct = 0;
+      for (var i = 0; i < total; i++) {
+        var chosen = document.querySelector("input[name=\"reading_q_" + i + "\"]:checked");
+        var val = chosen ? parseInt(chosen.value, 10) : -1;
+        var q = questions[i];
+        var rightIdx = Math.max(0, Math.min(3, parseInt(q.correct, 10) || 0));
+        if (val === rightIdx) correct++;
+      }
+      var rate = total > 0 ? correct / total : 0;
+      var quizModal = document.getElementById("modalReadingQuiz");
+      var resultModal = document.getElementById("modalReadingResult");
+      var resultTitle = document.getElementById("readingResultTitle");
+      var resultText = document.getElementById("readingResultText");
+      var coinsEl = document.getElementById("readingResultCoins");
+      if (quizModal) quizModal.classList.add("hide");
+      if (resultTitle) resultTitle.textContent = "测验结果";
+      if (resultText) resultText.textContent = "正确 " + correct + " / " + total + "，正确率 " + (rate * 100).toFixed(0) + "%。" + (rate >= 0.9 ? " 恭喜达标！" : " 未达到 90%，继续加油。");
+      if (rate >= 0.9) {
+        setNum(KEY.coins, getNum(KEY.coins) + 600);
+        if (coinsEl) { coinsEl.textContent = "+ 600 金币"; coinsEl.classList.remove("hide"); }
+      } else {
+        if (coinsEl) coinsEl.classList.add("hide");
+      }
+      refreshHeader();
+      syncToAccount();
+      if (resultModal) resultModal.classList.remove("hide");
+    } catch (e) {
+      alert("提交出错，请重试");
     }
-    var rate = total > 0 ? correct / total : 0;
-    document.getElementById("modalReadingQuiz").classList.add("hide");
-    document.getElementById("readingResultTitle").textContent = "测验结果";
-    document.getElementById("readingResultText").textContent = "正确 " + correct + " / " + total + "，正确率 " + (rate * 100).toFixed(0) + "%。" + (rate >= 0.9 ? " 恭喜达标！" : " 未达到 90%，继续加油。");
-    var coinsEl = document.getElementById("readingResultCoins");
-    if (rate >= 0.9) {
-      setNum(KEY.coins, getNum(KEY.coins) + 600);
-      coinsEl.textContent = "+ 600 金币";
-      coinsEl.classList.remove("hide");
-    } else {
-      coinsEl.classList.add("hide");
-    }
-    refreshHeader();
-    document.getElementById("modalReadingResult").classList.remove("hide");
   };
 
   document.getElementById("modalReadingResultClose").onclick = function() {
