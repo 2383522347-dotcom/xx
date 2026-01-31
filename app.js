@@ -1228,13 +1228,33 @@
       };
       var delBtn = item.querySelector(".admin-btn-delete");
       if (delBtn) delBtn.onclick = function() {
-        if (!confirm("确定删除账户 " + username + "？")) return;
+        if (!confirm("确定删除账户 " + username + "？删除后该账号将无法再登录。")) return;
         var ac = getAccounts();
-        delete ac[username];
-        setAccounts(ac);
-        try { localStorage.removeItem("mech_user_" + username); } catch (e) {}
-        fillAdminList();
-        alert("已删除");
+        var pwd = ac[username];
+        function doLocalDelete() {
+          delete ac[username];
+          setAccounts(ac);
+          try { localStorage.removeItem("mech_user_" + username); } catch (e) {}
+          fillAdminList();
+          alert("已删除");
+        }
+        if (!SYNC_API_URL || !pwd) {
+          doLocalDelete();
+          return;
+        }
+        fetch(SYNC_API_URL + "/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: username, password: pwd, deleteAccount: true })
+        }).then(function(r) { return r.json().then(function(j) { return { ok: r.ok, json: j }; }); })
+          .then(function(result) {
+            if (result.ok && result.json.deleted) {
+              doLocalDelete();
+            } else {
+              alert("云端删除失败：" + (result.json && result.json.error ? result.json.error : "请稍后重试"));
+            }
+          })
+          .catch(function() { alert("云端删除失败，请检查网络后重试"); });
       };
       var blacklistBtn = item.querySelector(".admin-btn-blacklist");
       if (blacklistBtn) blacklistBtn.onclick = function() {

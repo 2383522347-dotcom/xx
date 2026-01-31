@@ -30,6 +30,18 @@ async function redisSet(key, value) {
   return json.result === "OK";
 }
 
+async function redisDel(key) {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) return false;
+  const res = await fetch(`${UPSTASH_URL}/del/${encodeURIComponent(key)}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
+  });
+  const json = await res.json();
+  if (json.error) throw new Error("Upstash: " + json.error);
+  if (!res.ok) throw new Error("Upstash HTTP " + res.status);
+  return (json.result | 0) > 0;
+}
+
 // 无 Redis 时用内存（仅当前实例，重启/多实例不共享）
 const memoryStore = typeof global !== "undefined" ? (global.__mechSyncStore = global.__mechSyncStore || {}) : {};
 
@@ -45,6 +57,14 @@ async function setStored(key, value) {
     return await redisSet(key, value);
   }
   memoryStore[key] = value;
+  return true;
+}
+
+async function delStored(key) {
+  if (UPSTASH_URL && UPSTASH_TOKEN) {
+    return await redisDel(key);
+  }
+  delete memoryStore[key];
   return true;
 }
 
@@ -81,6 +101,14 @@ export default async function handler(req, res) {
       try {
         obj = typeof stored === "string" ? JSON.parse(stored) : stored;
       } catch (e) {}
+    }
+
+    // 删除账户：校验密码后从 Redis/内存 删除，之后该账号无法再登录
+    if (req.body.deleteAccount === true) {
+      if (!obj) return res.status(401).json({ error: "账号不存在" });
+      if (obj.password !== password) return res.status(401).json({ error: "密码错误" });
+      await delStored(key);
+      return res.status(200).json({ ok: true, deleted: true });
     }
 
     if (data !== undefined) {

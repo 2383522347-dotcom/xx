@@ -693,14 +693,29 @@
     }
     function adminDeleteAccount(username){
       if(!username) return;
-      if(!confirm('确定删除账户 '+username+'？')) return;
+      if(!confirm('确定删除账户 '+username+'？删除后该账号将无法再登录。')) return;
       var raw=localStorage.getItem('mech_accounts')||'{}';
       var accounts={}; try{ accounts=JSON.parse(raw); }catch(e){}
-      delete accounts[username];
-      localStorage.setItem('mech_accounts',JSON.stringify(accounts));
-      try{ localStorage.removeItem('mech_user_'+username); }catch(e){}
-      fillAdminListFallback();
-      alert('已删除');
+      var pwd=accounts[username];
+      function doLocalDelete(){
+        delete accounts[username];
+        localStorage.setItem('mech_accounts',JSON.stringify(accounts));
+        try{ localStorage.removeItem('mech_user_'+username); }catch(e){}
+        fillAdminListFallback();
+        alert('已删除');
+      }
+      var apiBase=(window.location.origin||'')+'/api';
+      if(!apiBase||!pwd){ doLocalDelete(); return; }
+      fetch(apiBase+'/sync',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({username:username,password:pwd,deleteAccount:true})
+      }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok,json:j}; }); })
+        .then(function(result){
+          if(result.ok&&result.json.deleted){ doLocalDelete(); }
+          else{ alert('云端删除失败：'+(result.json&&result.json.error?result.json.error:'请稍后重试')); }
+        })
+        .catch(function(){ alert('云端删除失败，请检查网络后重试'); });
     }
     function adminBlacklist(username){
       if(!username) return;
