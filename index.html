@@ -334,7 +334,7 @@
     <div id="pageWordBookSelect" class="page">
       <div class="top-bar">
         <h2>选择单词本</h2>
-        <button type="button" class="btn" id="btnBackFromBookSelect">返回</button>
+        <button type="button" class="btn" id="btnBackFromBookSelect" onclick="if(window.goBack)window.goBack('btnBackFromBookSelect')">返回</button>
       </div>
       <div id="wordBookList"></div>
       <p style="margin-top:12px;"><label>选择: </label><select id="selectWordBook"></select> <button type="button" class="btn" id="btnConfirmWordBook">确认</button></p>
@@ -344,7 +344,7 @@
     <div id="pageWordCard" class="page">
       <div class="top-bar">
         <h2 id="wordCardTitle">单词学习</h2>
-        <button type="button" class="btn" id="btnBackFromWordCard">返回</button>
+        <button type="button" class="btn" id="btnBackFromWordCard" onclick="if(window.goBack)window.goBack('btnBackFromWordCard')">返回</button>
       </div>
       <div id="wordCardBox" class="word-card-box">
         <p class="word-en" id="cardWordEn" title="点击发音">—</p>
@@ -363,7 +363,7 @@
     <div id="pageLearned" class="page">
       <div class="top-bar">
         <h2>已学习单词</h2>
-        <button type="button" class="btn" id="btnBackFromLearned">退出</button>
+        <button type="button" class="btn" id="btnBackFromLearned" onclick="if(window.goBack)window.goBack('btnBackFromLearned')">退出</button>
       </div>
       <p style="margin-bottom:12px;"><button type="button" class="btn" id="btnForgetReview">遗忘复习</button></p>
       <div id="learnedWordList"></div>
@@ -378,7 +378,7 @@
     <div id="pageScenario" class="page">
       <div class="top-bar">
         <h2>情景对话</h2>
-        <button type="button" class="btn" id="btnBackFromScenario">返回</button>
+        <button type="button" class="btn" id="btnBackFromScenario" onclick="if(window.goBack)window.goBack('btnBackFromScenario')">返回</button>
       </div>
       <p style="margin-bottom:12px;">选择情景，输入你的英文句子，系统会判断意思是否大致正确并给出更好表达。</p>
       <label>情景</label>
@@ -394,7 +394,7 @@
     <div id="pageWordTest" class="page">
       <div class="top-bar">
         <h2>单词测试</h2>
-        <button type="button" class="btn" id="btnBackFromWordTest">返回</button>
+        <button type="button" class="btn" id="btnBackFromWordTest" onclick="if(window.goBack)window.goBack('btnBackFromWordTest')">返回</button>
       </div>
       <p>选择单词本，随机50题。</p>
       <select id="wordTestBookSelect"></select>
@@ -405,7 +405,7 @@
     <div id="pageWordTestDo" class="page">
       <div class="top-bar">
         <h2>单词测试</h2>
-        <button type="button" class="btn" id="btnBackFromWordTestDo">返回</button>
+        <button type="button" class="btn" id="btnBackFromWordTestDo" onclick="if(window.goBack)window.goBack('btnBackFromWordTestDo')">返回</button>
       </div>
       <div class="test-do-progress">
         <span>已答 <strong id="wordTestProgressCurrent">0</strong> / <strong id="wordTestProgressTotal">50</strong> 题</span>
@@ -426,7 +426,7 @@
     <div id="pageBasicSelect" class="page">
       <div class="top-bar">
         <h2>基础单词学习</h2>
-        <button type="button" class="btn" id="btnBackFromBasic">返回</button>
+        <button type="button" class="btn" id="btnBackFromBasic" onclick="if(window.goBack)window.goBack('btnBackFromBasic')">返回</button>
       </div>
       <p>选择等级后进入单词卡学习。</p>
       <select id="basicLevelSelect">
@@ -446,7 +446,7 @@
     <div id="pageVocabTest" class="page">
       <div class="top-bar">
         <h2>单词词汇量检测</h2>
-        <button type="button" class="btn" id="btnBackFromVocabTest">返回</button>
+        <button type="button" class="btn" id="btnBackFromVocabTest" onclick="if(window.goBack)window.goBack('btnBackFromVocabTest')">返回</button>
       </div>
       <p>50题，根据正确率定级。已有等级则判断晋级/降级。</p>
       <button type="button" class="btn" id="btnVocabTestStart">开始测试</button>
@@ -456,7 +456,7 @@
     <div id="pageVocabTestDo" class="page">
       <div class="top-bar">
         <h2>单词词汇量检测</h2>
-        <button type="button" class="btn" id="btnBackFromVocabTestDo">返回</button>
+        <button type="button" class="btn" id="btnBackFromVocabTestDo" onclick="if(window.goBack)window.goBack('btnBackFromVocabTestDo')">返回</button>
       </div>
       <div class="test-do-progress">
         <span>已答 <strong id="vocabTestProgressCurrent">0</strong> / <strong id="vocabTestProgressTotal">50</strong> 题</span>
@@ -477,7 +477,7 @@
     <div id="pageReadingSelect" class="page">
       <div class="top-bar">
         <h2>英语阅读</h2>
-        <button type="button" class="btn" id="btnBackFromReadingSelect">返回</button>
+        <button type="button" class="btn" id="btnBackFromReadingSelect" onclick="if(window.goBack)window.goBack('btnBackFromReadingSelect')">返回</button>
       </div>
       <p>选择等级后开始随机文章阅读。阅读完毕点击「我已经阅读完毕」进入测验，正确率≥90% 可获得 600 金币。</p>
       <select id="readingLevelSelect">
@@ -497,7 +497,7 @@
     <div id="pageReadingArticle" class="page">
       <div class="top-bar">
         <h2 id="readingArticleTitle">—</h2>
-        <button type="button" class="btn" id="btnBackFromReadingArticle">返回</button>
+        <button type="button" class="btn" id="btnBackFromReadingArticle" onclick="if(window.goBack)window.goBack('btnBackFromReadingArticle')">返回</button>
       </div>
       <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">点击单词可查看单词卡，点击句子可查看该句翻译。</p>
       <div id="readingArticleBody" class="reading-article-body"></div>
@@ -510,7 +510,7 @@
     <div id="pageRecommend" class="page">
       <div class="top-bar">
         <h2>推荐学习</h2>
-        <button type="button" class="btn" id="btnBackFromRecommend">返回</button>
+        <button type="button" class="btn" id="btnBackFromRecommend" onclick="if(window.goBack)window.goBack('btnBackFromRecommend')">返回</button>
       </div>
       <p id="recommendHint">完成词汇量检测后，根据你的等级推荐需要学习的单词。</p>
       <button type="button" class="btn" id="btnRecommendStart">开始学习</button>
@@ -764,6 +764,33 @@
       }
     }
     window.initLoginState=initLoginState;
+    var backTargetMap={
+      'btnBackFromBookSelect':'pageHome',
+      'btnBackFromWordCard':'pageWordBookSelect',
+      'btnBackFromLearned':'pageHome',
+      'btnBackFromScenario':'pageHome',
+      'btnBackFromWordTest':'pageHome',
+      'btnBackFromWordTestDo':'pageWordTest',
+      'btnBackFromBasic':'pageHome',
+      'btnBackFromVocabTest':'pageHome',
+      'btnBackFromVocabTestDo':'pageVocabTest',
+      'btnBackFromReadingSelect':'pageHome',
+      'btnBackFromReadingArticle':'pageReadingSelect',
+      'btnBackFromRecommend':'pageHome'
+    };
+    function goBack(btnId){
+      var target=backTargetMap[btnId];
+      if(!target) return;
+      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+      var page=document.getElementById(target);
+      if(page) page.classList.add('active');
+    }
+    window.goBack=goBack;
+    function fillWordBookSelectFallback(selectId){
+      var sel=document.getElementById(selectId);
+      if(!sel) return;
+      sel.innerHTML='<option value="26国集训一轮单词">26国集训一轮单词</option><option value="基础操作词汇">基础操作词汇</option>';
+    }
     function bindModuleClicks(){
       var grid=document.getElementById('mainGrid');
       if(!grid) return;
@@ -778,6 +805,14 @@
           document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
           var page=document.getElementById(pageId);
           if(page) page.classList.add('active');
+          if(mod==='wordLearn'){
+            if(typeof window.fillWordBookSelect==='function') window.fillWordBookSelect('selectWordBook');
+            else fillWordBookSelectFallback('selectWordBook');
+          }
+          if(mod==='wordTest'){
+            if(typeof window.fillWordBookSelect==='function') window.fillWordBookSelect('wordTestBookSelect');
+            else fillWordBookSelectFallback('wordTestBookSelect');
+          }
         }
         if(window.onModuleEnter) window.onModuleEnter(mod);
       });

@@ -194,6 +194,7 @@
       sel.appendChild(opt);
     });
   }
+  window.fillWordBookSelect = fillWordBookSelect;
 
   // 单词卡：当前列表与索引
   let currentWordList = [];
@@ -1369,6 +1370,7 @@
       sel.appendChild(opt);
     });
   }
+  window.fillWordBookSelect = fillWordBookSelect;
 
   // 单词卡：当前列表与索引
   let currentWordList = [];
