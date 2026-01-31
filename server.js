@@ -50,6 +50,9 @@ app.post("/api/sync", function(req, res) {
     return res.json({ ok: true, data: userData[username] });
   }
 
+  if (!accounts[username]) {
+    return res.status(401).json({ error: "账号不存在" });
+  }
   if (accounts[username] !== password) {
     return res.status(401).json({ error: "密码错误" });
   }

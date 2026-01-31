@@ -140,6 +140,7 @@
     document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
     const p = document.getElementById(pageId);
     if (p) p.classList.add("active");
+    if (pageId === "pageLoginGate") updateGateSyncHint();
     const isHome = pageId === "pageHome";
     if (isHome) stopStudyTimer();
     else if (pageId !== "pageLoginGate") startStudyTimer();
@@ -161,9 +162,21 @@
     if (!acc || !acc.username) {
       if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "none";
       showPage("pageLoginGate");
+      updateGateSyncHint();
     } else {
       if (document.getElementById("appHeader")) document.getElementById("appHeader").style.display = "";
       showPage("pageHome");
+    }
+  }
+  function updateGateSyncHint() {
+    var el = document.getElementById("gateSyncHint");
+    if (!el) return;
+    if (SYNC_API_URL) {
+      var origin = typeof window !== "undefined" && window.location && window.location.origin ? window.location.origin : "";
+      el.textContent = "当前同步地址：" + origin + "。电脑与手机必须使用同一链接登录，否则账号不同步。";
+      el.style.display = "";
+    } else {
+      el.style.display = "none";
     }
   }
 
@@ -291,7 +304,9 @@
       learnedWords: getJSON(KEY.learnedWords),
       vocabLevel: getStr(KEY.vocabLevel),
       vocabLevelIndex: getNum(KEY.vocabLevelIndex),
-      forgetReviewDays: getNum(KEY.forgetReviewDays)
+      forgetReviewDays: getNum(KEY.forgetReviewDays),
+      learnedCount: getNum(KEY.learnedCount),
+      wordLearnCount: getNum(KEY.wordLearnCount)
     };
   }
   function applyUserData(d) {
@@ -305,6 +320,8 @@
     if (d.vocabLevel) setStr(KEY.vocabLevel, d.vocabLevel);
     if (d.vocabLevelIndex !== undefined) setNum(KEY.vocabLevelIndex, d.vocabLevelIndex);
     if (d.forgetReviewDays !== undefined) setNum(KEY.forgetReviewDays, d.forgetReviewDays);
+    if (d.learnedCount !== undefined) setNum(KEY.learnedCount, d.learnedCount);
+    if (d.wordLearnCount !== undefined) setNum(KEY.wordLearnCount, d.wordLearnCount);
   }
 
   function syncFromAccount() {
@@ -374,6 +391,40 @@
         if (res && res.data) applyUserData(res.data);
       })
       .catch(function() { SYNC_API_URL = ""; });
+  }
+
+  // 云端优先：用表单账号密码直接请求服务器登录（不依赖本地账号表）
+  function loginViaServer(user, pwd, cb) {
+    if (!SYNC_API_URL) { if (cb) cb(false, null, "未连接云端"); return; }
+    fetch(SYNC_API_URL + "/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: user, password: pwd })
+    })
+      .then(function(r) {
+        return r.json().then(function(j) {
+          if (r.ok) { if (cb) cb(true, j.data || {}, null); }
+          else { if (cb) cb(false, null, (j && j.error) || "账号不存在或密码错误"); }
+        });
+      })
+      .catch(function() { if (cb) cb(false, null, "网络错误，请检查网址与网络"); });
+  }
+
+  // 云端优先：注册 = 在服务器创建账号（任意设备可登录）
+  function registerViaServer(user, pwd, cb) {
+    if (!SYNC_API_URL) { if (cb) cb(false, "未连接云端"); return; }
+    fetch(SYNC_API_URL + "/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: user, password: pwd, data: {} })
+    })
+      .then(function(r) {
+        return r.json().then(function(j) {
+          if (r.ok) { if (cb) cb(true); }
+          else { if (cb) cb(false, (j && j.error) || "账号已存在，请直接登录"); }
+        });
+      })
+      .catch(function() { if (cb) cb(false, "网络错误，请检查网址与网络"); });
   }
 
   // 初始化：今日学习日期
@@ -974,29 +1025,33 @@
   }
   window.fillAdminList = fillAdminList;
 
-  // 登录门页：登录
+  // 登录门页：登录（有云端时完全走服务器，任意设备/浏览器同账号实时同步）
   document.getElementById("gateBtnLogin").onclick = function() {
     const user = (document.getElementById("gateUsername").value || "").trim();
     const pwd = document.getElementById("gatePassword").value || "";
     if (!user) { alert("请输入账号"); return; }
     if (getBlacklist().indexOf(user) >= 0) { alert("已经冻结"); return; }
-    const accounts = getAccounts();
-    if (!accounts[user]) { alert("登录失败"); return; }
-    if (accounts[user] !== pwd) { alert("密码错误"); return; }
-    setAccount({ username: user, password: pwd });
     if (SYNC_API_URL) {
-      syncFromServer(function(ok, hadServerData) {
-        if (!ok) syncFromAccount();
+      loginViaServer(user, pwd, function(ok, data, errMsg) {
+        if (!ok) { alert(errMsg || "登录失败"); return; }
+        setAccount({ username: user, password: pwd });
+        applyUserData(data || {});
+        if (Object.keys(data || {}).length === 0) syncFromAccount();
+        syncToAccount();
         refreshHeader();
         enterApp();
-        var msg = (ok && hadServerData) ? "登录成功，数据已从云端恢复（手机/电脑同账号一致）" : "登录成功，已从本机恢复数据；换设备或手机登录请用同一网址打开，数据会自动同步到云端。";
+        var msg = (data && Object.keys(data).length > 0) ? "登录成功，数据已从云端恢复（任意设备同账号一致）" : "登录成功，数据将实时同步到云端。";
         alert(msg);
       });
     } else {
+      const accounts = getAccounts();
+      if (!accounts[user]) { alert("登录失败"); return; }
+      if (accounts[user] !== pwd) { alert("密码错误"); return; }
+      setAccount({ username: user, password: pwd });
       syncFromAccount();
       refreshHeader();
       enterApp();
-      alert("登录成功，数据已从本机恢复。多设备同步请通过「同一网址」访问（如 npm start 后的地址或已部署的链接）。");
+      alert("登录成功，数据已从本机恢复。多设备同步请通过「同一网址」访问（如 npm start 或已部署链接）。");
     }
   };
   document.getElementById("gateBtnShowRegister").onclick = function() {
@@ -1015,6 +1070,22 @@
     if (!pwd) { alert("注册失败"); return; }
     if (!/^[a-zA-Z0-9]+$/.test(pwd)) { alert("密码只能使用英文字母和数字"); return; }
     if (pwd !== confirmPwd) { alert("注册失败"); return; }
+    if (SYNC_API_URL) {
+      registerViaServer(user, pwd, function(ok, errMsg) {
+        if (!ok) { alert(errMsg || "注册失败"); return; }
+        setAccount({ username: user, password: pwd });
+        applyUserData({});
+        document.getElementById("gateRegUsername").value = "";
+        document.getElementById("gateRegPassword").value = "";
+        document.getElementById("gateRegPasswordConfirm").value = "";
+        document.getElementById("gateRegisterForm").classList.add("hide");
+        document.getElementById("gateLoginForm").classList.remove("hide");
+        refreshHeader();
+        enterApp();
+        alert("注册成功，数据将实时同步到云端，任意设备登录此账号即可同步。");
+      });
+      return;
+    }
     var accounts = getAccounts();
     if (accounts[user]) { alert("注册失败"); return; }
     accounts[user] = pwd;

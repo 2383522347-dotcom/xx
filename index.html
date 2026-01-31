@@ -297,10 +297,11 @@
         </script>
         <h2>机电一体化英文学习</h2>
         <p class="login-gate-tip">请先登录或注册后再进行学习</p>
+        <p id="gateSyncHint" class="login-gate-tip" style="margin-top:8px;font-size:12px;color:var(--text-muted);display:none;"></p>
         <div id="gateLoginForm">
           <input type="text" id="gateUsername" placeholder="账号">
           <input type="password" id="gatePassword" placeholder="密码">
-          <button type="button" class="btn" id="gateBtnLogin" onclick="if(window.doGateLogin)window.doGateLogin()">登录</button>
+          <button type="button" class="btn" id="gateBtnLogin">登录</button>
           <button type="button" class="btn" id="gateBtnShowRegister" onclick="var f=document.getElementById('gateLoginForm'); var r=document.getElementById('gateRegisterForm'); if(f&&r){ f.classList.add('hide'); r.classList.remove('hide'); document.getElementById('gateRegUsername').value=''; document.getElementById('gateRegPassword').value=''; document.getElementById('gateRegPasswordConfirm').value=''; }">注册</button>
         </div>
         <div id="gateRegisterForm" class="hide">
@@ -309,7 +310,7 @@
           <input type="text" id="gateRegUsername" placeholder="账号（仅英文、数字）">
           <input type="password" id="gateRegPassword" placeholder="密码（仅英文、数字）">
           <input type="password" id="gateRegPasswordConfirm" placeholder="确认密码">
-          <button type="button" class="btn" id="gateBtnRegister" onclick="if(window.doGateRegister)window.doGateRegister()">注册</button>
+          <button type="button" class="btn" id="gateBtnRegister">注册</button>
           <button type="button" class="btn" id="gateBtnShowLogin" onclick="var f=document.getElementById('gateLoginForm'); var r=document.getElementById('gateRegisterForm'); if(f&&r){ r.classList.add('hide'); f.classList.remove('hide'); }">返回登录</button>
         </div>
       </div>

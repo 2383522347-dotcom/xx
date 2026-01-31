@@ -78,8 +78,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, data: data });
   }
 
-  // 拉取：无存档时视为新用户，返回空数据（避免 401）
-  if (!obj) return res.status(200).json({ data: {} });
+  // 拉取：无账号返回 401，任意设备可凭账号密码登录
+  if (!obj) return res.status(401).json({ error: "账号不存在" });
   if (obj.password !== password) {
     return res.status(401).json({ error: "密码错误" });
   }
