@@ -167,6 +167,12 @@
     .login-gate-tip { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; text-align: center; }
     .login-gate-box input { display: block; width: 100%; margin-bottom: 12px; }
     .login-gate-box .btn { margin-right: 10px; margin-top: 8px; }
+    .gate-reg-error {
+      display: none; margin-bottom: 12px; padding: 10px 12px;
+      background: #fde8e8; border: 1px solid #e57373; border-radius: var(--radius);
+      color: #c62828; font-size: 14px; line-height: 1.4;
+    }
+    .gate-reg-error.show { display: block; }
 
     /* 平板 */
     @media (max-width: 1024px) {
@@ -264,9 +270,10 @@
           <button type="button" class="btn" id="gateBtnShowRegister" onclick="var f=document.getElementById('gateLoginForm'); var r=document.getElementById('gateRegisterForm'); if(f&&r){ f.classList.add('hide'); r.classList.remove('hide'); document.getElementById('gateRegUsername').value=''; document.getElementById('gateRegPassword').value=''; document.getElementById('gateRegPasswordConfirm').value=''; var btn=document.getElementById('gateBtnRegister'); if(btn) btn.disabled=true; }">注册</button>
         </div>
         <div id="gateRegisterForm" class="hide">
-          <p class="login-gate-tip" style="margin-bottom:16px;">填写账号、密码与确认密码，两遍密码一致后可点击注册</p>
-          <input type="text" id="gateRegUsername" placeholder="账号">
-          <input type="password" id="gateRegPassword" placeholder="密码">
+          <p class="login-gate-tip" style="margin-bottom:16px;">账号与密码只能使用英文字母和数字，两遍密码一致后可点击注册</p>
+          <div id="gateRegError" class="gate-reg-error"></div>
+          <input type="text" id="gateRegUsername" placeholder="账号（仅英文、数字）">
+          <input type="password" id="gateRegPassword" placeholder="密码（仅英文、数字）">
           <input type="password" id="gateRegPasswordConfirm" placeholder="确认密码">
           <button type="button" class="btn" id="gateBtnRegister" disabled>注册</button>
           <button type="button" class="btn" id="gateBtnShowLogin" onclick="var f=document.getElementById('gateLoginForm'); var r=document.getElementById('gateRegisterForm'); if(f&&r){ r.classList.add('hide'); f.classList.remove('hide'); }">返回登录</button>

@@ -2191,4 +2191,3 @@
   refreshHeader();
   setInterval(refreshHeader, 1000);
 })();
->>>>>>> c72ceaebbce3423a735af5d34a5d50d5e97fd192
