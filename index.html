@@ -243,9 +243,11 @@
           <button type="button" class="btn" id="gateBtnShowRegister">注册</button>
         </div>
         <div id="gateRegisterForm" class="hide">
-          <input type="text" id="gateRegUsername" placeholder="新账号">
-          <input type="password" id="gateRegPassword" placeholder="新密码">
-          <button type="button" class="btn" id="gateBtnRegister">注册</button>
+          <p class="login-gate-tip" style="margin-bottom:16px;">填写账号、密码与确认密码，两遍密码一致后可点击注册</p>
+          <input type="text" id="gateRegUsername" placeholder="账号">
+          <input type="password" id="gateRegPassword" placeholder="密码">
+          <input type="password" id="gateRegPasswordConfirm" placeholder="确认密码">
+          <button type="button" class="btn" id="gateBtnRegister" disabled>注册</button>
           <button type="button" class="btn" id="gateBtnShowLogin">返回登录</button>
         </div>
       </div>

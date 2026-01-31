@@ -905,24 +905,44 @@
   document.getElementById("gateBtnShowRegister").onclick = function() {
     document.getElementById("gateLoginForm").classList.add("hide");
     document.getElementById("gateRegisterForm").classList.remove("hide");
+    document.getElementById("gateRegUsername").value = "";
+    document.getElementById("gateRegPassword").value = "";
+    document.getElementById("gateRegPasswordConfirm").value = "";
+    document.getElementById("gateBtnRegister").disabled = true;
   };
+  function updateGateRegisterBtn() {
+    var pwd = (document.getElementById("gateRegPassword").value || "").trim();
+    var confirmPwd = (document.getElementById("gateRegPasswordConfirm").value || "").trim();
+    var user = (document.getElementById("gateRegUsername").value || "").trim();
+    document.getElementById("gateBtnRegister").disabled = !user || !pwd || pwd !== confirmPwd;
+  }
+  document.getElementById("gateRegUsername").addEventListener("input", updateGateRegisterBtn);
+  document.getElementById("gateRegPassword").addEventListener("input", updateGateRegisterBtn);
+  document.getElementById("gateRegPasswordConfirm").addEventListener("input", updateGateRegisterBtn);
   document.getElementById("gateBtnRegister").onclick = function() {
-    const user = (document.getElementById("gateRegUsername").value || "").trim();
-    const pwd = document.getElementById("gateRegPassword").value || "";
-    if (!user) { alert("请输入新账号"); return; }
-    const accounts = getAccounts();
+    var user = (document.getElementById("gateRegUsername").value || "").trim();
+    var pwd = document.getElementById("gateRegPassword").value || "";
+    var confirmPwd = document.getElementById("gateRegPasswordConfirm").value || "";
+    if (!user) { alert("请输入账号"); return; }
+    if (pwd !== confirmPwd) { alert("密码与确认密码不一致"); return; }
+    var accounts = getAccounts();
     if (accounts[user]) { alert("该账号已存在"); return; }
     accounts[user] = pwd;
     setAccounts(accounts);
-    setAccount({ username: user, password: pwd });
+    document.getElementById("gateRegUsername").value = "";
+    document.getElementById("gateRegPassword").value = "";
+    document.getElementById("gateRegPasswordConfirm").value = "";
     document.getElementById("gateRegisterForm").classList.add("hide");
     document.getElementById("gateLoginForm").classList.remove("hide");
-    enterApp();
-    alert("注册成功，已自动登录");
+    document.getElementById("gateBtnRegister").disabled = true;
+    alert("注册成功，请使用账号和密码登录");
   };
   document.getElementById("gateBtnShowLogin").onclick = function() {
     document.getElementById("gateRegisterForm").classList.add("hide");
     document.getElementById("gateLoginForm").classList.remove("hide");
+    document.getElementById("gateRegUsername").value = "";
+    document.getElementById("gateRegPassword").value = "";
+    document.getElementById("gateRegPasswordConfirm").value = "";
   };
 
   // 页面加载时：未登录则显示登录门
