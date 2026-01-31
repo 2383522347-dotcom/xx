@@ -12,6 +12,8 @@ async function redisGet(key) {
     headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
   });
   const json = await res.json();
+  if (json.error) throw new Error("Upstash: " + json.error);
+  if (!res.ok) throw new Error("Upstash HTTP " + res.status);
   return json.result != null ? json.result : null;
 }
 
@@ -23,6 +25,8 @@ async function redisSet(key, value) {
     body: value,
   });
   const json = await res.json();
+  if (json.error) throw new Error("Upstash: " + json.error);
+  if (!res.ok) throw new Error("Upstash HTTP " + res.status);
   return json.result === "OK";
 }
 
