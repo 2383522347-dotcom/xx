@@ -159,7 +159,7 @@ const WORD_BOOK_BASIC = [
 // 情景对话：每组 { prompt: 中文/场景, answers: [可接受的英文], suggest: 更好表达 }
 const SCENARIO_DIALOGUES = {
   multimeter: {
-    name: "万用表说明 (CN multimeter)",
+    name: "21、中国队万用表说明文件 (CN multimeter)",
     items: [
       { prompt: "福禄克万用表如果在1分钟内没有操作，会自动关机。请用英文说明。", answers: ["Our Fluke multimeter will shut down automatically if no operation in 1 min.", "The Fluke multimeter will turn off automatically if there is no operation within one minute.", "If there is no operation in 1 minute, the Fluke multimeter will shut down automatically."], suggest: "Our Fluke multimeter will shut down automatically if there is no operation within one minute." },
       { prompt: "中国选手将选择万用表到需要测量数据的挡位。", answers: ["CN competitor would like to shift the multimeter to position which need to measure.", "The Chinese competitor will select the multimeter to the range needed for measurement.", "CN competitor will shift the multimeter to the position that needs to be measured."], suggest: "The CN competitor will shift the multimeter to the range required for the measurement." },
@@ -167,7 +167,7 @@ const SCENARIO_DIALOGUES = {
     ]
   },
   competition: {
-    name: "竞赛句型",
+    name: "22、竞赛句型",
     items: [
       { prompt: "我需要帮助！（I need help）", answers: ["I need help!", "I need help."], suggest: "I need help!" },
       { prompt: "时间裁判！我遇到了问题。", answers: ["Timekeeper! I get some problem.", "Timekeeper! I have a problem.", "Timekeeper! I've got a problem."], suggest: "Timekeeper! I have a problem." },
@@ -181,7 +181,7 @@ const SCENARIO_DIALOGUES = {
     ]
   },
   greeting: {
-    name: "问候与告别",
+    name: "23、问候与告别",
     items: [
       { prompt: "早上好！", answers: ["Good morning!", "Good morning."], suggest: "Good morning!" },
       { prompt: "下午好！", answers: ["Good afternoon!", "Good afternoon."], suggest: "Good afternoon!" },
@@ -191,7 +191,7 @@ const SCENARIO_DIALOGUES = {
     ]
   },
   thanks: {
-    name: "感谢与表扬",
+    name: "23、感谢与表扬",
     items: [
       { prompt: "非常感谢你！", answers: ["Thank you very much!", "Thanks a lot!", "Thank you so much."], suggest: "Thank you very much!" },
       { prompt: "不客气。", answers: ["You are welcome!", "You're welcome.", "Welcome."], suggest: "You're welcome!" },
@@ -200,7 +200,7 @@ const SCENARIO_DIALOGUES = {
     ]
   },
   apology: {
-    name: "道歉与请求",
+    name: "23、道歉与请求",
     items: [
       { prompt: "对不起。", answers: ["I'm sorry.", "I am sorry.", "Sorry."], suggest: "I'm sorry." },
       { prompt: "打扰一下。", answers: ["Excuse me.", "Pardon me."], suggest: "Excuse me." },
@@ -209,7 +209,7 @@ const SCENARIO_DIALOGUES = {
     ]
   },
   question: {
-    name: "询问与回答",
+    name: "23、询问与回答",
     items: [
       { prompt: "你叫什么名字？", answers: ["What's your name?", "What is your name?"], suggest: "What's your name?" },
       { prompt: "你来自哪里？", answers: ["Where are you from?", "Where do you come from?"], suggest: "Where are you from?" },
@@ -218,7 +218,7 @@ const SCENARIO_DIALOGUES = {
     ]
   },
   suggestion: {
-    name: "建议与邀请",
+    name: "23、建议与邀请",
     items: [
       { prompt: "明天打电话给我。", answers: ["Call me tomorrow.", "Give me a call tomorrow."], suggest: "Call me tomorrow." },
       { prompt: "我们去吃饭吧。", answers: ["Let's go for meal.", "Let's go for a meal.", "Let's get something to eat."], suggest: "Let's go for a meal." },
@@ -226,7 +226,7 @@ const SCENARIO_DIALOGUES = {
     ]
   },
   feeling: {
-    name: "表达情感与状态",
+    name: "23、表达情感与状态",
     items: [
       { prompt: "我很好，谢谢。", answers: ["I'm fine, thank you.", "I am fine, thanks."], suggest: "I'm fine, thank you." },
       { prompt: "对不起，我迟到了。", answers: ["I'm sorry for being late.", "I am sorry I'm late."], suggest: "I'm sorry for being late." },
@@ -235,7 +235,7 @@ const SCENARIO_DIALOGUES = {
     ]
   },
   daily: {
-    name: "日常交流",
+    name: "23、日常交流",
     items: [
       { prompt: "明天见。", answers: ["See you tomorrow.", "See you tomorrow!"], suggest: "See you tomorrow!" },
       { prompt: "恭喜你的成功！", answers: ["Congratulations on your success!", "Congratulations!"], suggest: "Congratulations on your success!" },
@@ -244,14 +244,14 @@ const SCENARIO_DIALOGUES = {
     ]
   },
   need: {
-    name: "基本需求",
+    name: "23、基本需求",
     items: [
       { prompt: "最近的卫生间在哪里？", answers: ["Where is the nearest restroom?", "Where is the toilet?", "Where can I find the restroom?"], suggest: "Where is the nearest restroom?" },
       { prompt: "请你借我一支笔好吗？", answers: ["Could you lend me a pen, please?", "Can you lend me a pen?"], suggest: "Could you lend me a pen, please?" }
     ]
   },
   opinion: {
-    name: "观点与态度",
+    name: "23、观点与态度",
     items: [
       { prompt: "我认为不是。", answers: ["I don't think so.", "I do not think so."], suggest: "I don't think so." },
       { prompt: "我简直不能相信。", answers: ["I can't believe it.", "I cannot believe it."], suggest: "I can't believe it." },
@@ -484,9 +484,9 @@ const LETTER_CARDS = {
 
 // 英语阅读：分级文章（小学/初中/高中/大学/出国/雅思/托福/哈佛）
 // 格式：每篇 { title, sentences: [{ en, cn }], questions: [{ q, options: [A,B,C,D], correct: 0 }] }
-// 规模要求：每等级文章总数不低于 1 万篇（需外部 JSON/API）；每篇文章题目池不低于 8000 个；每次测验仅抽 5 道题。
-// 高中及以上：长文章、学术论文风格，专业方向任意；可从国外权威学术论坛、开放获取期刊（如 PLOS、arXiv 科普文）等获取合规文本后整理为 sentences + questions。
-// 扩展：在 app.js 设置 READING_DATA_URL 指向外部 JSON，应用优先加载外部数据。
+// 规模要求（生产环境）：每等级文章总数不低于 1 万篇、每等级题目池不低于 8000 题，需通过 app.js 中 READING_DATA_URL 加载外部 JSON/API；每次测验仅抽 5 道题。
+// 高中及以上：长文章、学术论文风格，专业方向任意；可从国外权威学术论坛、开放获取期刊（PLOS、arXiv、Nature Communications 等）整理合规文本为 sentences + questions。
+// 扩展：在 app.js 设置 READING_DATA_URL 指向外部 JSON，应用优先加载外部数据；本地本文件为示例，供演示与开发用。
 const READING_ARTICLES = {
   "小学": [
     {
@@ -681,6 +681,33 @@ const READING_ARTICLES = {
         { q: "What does reading improve according to the text?", options: ["Only memory.", "Vocabulary and writing skills.", "Nothing.", "Only speed."], correct: 1 },
         { q: "How long does the writer say you need to read each day?", options: ["Hours only.", "Even twenty minutes helps.", "You must read all day.", "No need."], correct: 1 }
       ]
+    },
+    {
+      title: "Biodiversity Loss and Ecosystem Stability: Evidence from Long-Term Ecological Research",
+      sentences: [
+        { en: "The accelerating loss of biodiversity worldwide has prompted extensive research into the relationship between species diversity and the stability of ecosystems.", cn: "全球生物多样性加速丧失促使人们广泛研究物种多样性与生态系统稳定性之间的关系。" },
+        { en: "Theoretical models and early empirical work suggested that more diverse communities might be more resistant to environmental perturbations and more stable in their productivity over time.", cn: "理论模型与早期实证工作表明，更多样化的群落可能对环境扰动更具抵抗力，其生产力随时间更稳定。" },
+        { en: "Long-term field experiments, such as those conducted at grassland and forest sites across Europe and North America, have provided robust evidence that species richness can enhance ecosystem functioning, including primary production, nutrient cycling, and resistance to invasion by exotic species.", cn: "在欧洲和北美草原与森林站点开展的长期野外实验提供了有力证据，表明物种丰富度可以增强生态系统功能，包括初级生产、养分循环以及对外来物种入侵的抵抗力。" },
+        { en: "Nevertheless, the mechanisms underlying these effects remain debated: complementarity among species in resource use, sampling effects whereby diverse communities are more likely to include highly productive species, and insurance effects whereby diversity buffers against fluctuations in individual species abundances have all been proposed.", cn: "然而，这些效应背后的机制仍有争议：物种在资源利用上的互补性、多样群落更可能包含高生产力物种的取样效应，以及多样性缓冲单个物种丰度波动的保险效应均被提出。" },
+        { en: "Recent meta-analyses have shown that the strength of the diversity–stability relationship varies across ecosystem types, spatial scales, and the aspect of stability considered, such as temporal stability of biomass versus resistance to extreme events.", cn: "近期的元分析表明，多样性–稳定性关系的强度因生态系统类型、空间尺度以及所考虑的稳定性方面（如生物量的时间稳定性与对极端事件的抵抗力）而异。" },
+        { en: "Furthermore, anthropogenic drivers such as habitat fragmentation, pollution, and climate change can interact with biodiversity loss in ways that are not yet fully predictable, complicating conservation and restoration efforts.", cn: "此外，栖息地破碎化、污染和气候变化等人为驱动因素可能与生物多样性丧失以尚无法完全预测的方式相互作用，使保护和恢复工作复杂化。" },
+        { en: "Policy-oriented summaries, including those from the Intergovernmental Science-Policy Platform on Biodiversity and Ecosystem Services, have emphasised that preserving and restoring biodiversity is not only an ethical imperative but also essential for sustaining ecosystem services on which human societies depend.", cn: "包括政府间生物多样性和生态系统服务科学政策平台在内的政策导向总结强调，保护和恢复生物多样性不仅是伦理上的当务之急，而且对维持人类社会所依赖的生态系统服务至关重要。" },
+        { en: "This passage has outlined the evidence linking biodiversity to ecosystem stability and the challenges in applying this knowledge to conservation; a full treatment would require detailed discussion of specific taxa, biomes, and management strategies.", cn: "本文概述了将生物多样性与生态系统稳定性联系起来的证据以及将这一知识应用于保护所面临的挑战；完整论述需要详细讨论特定类群、生物群系和管理策略。" }
+      ],
+      questions: [
+        { q: "The main idea of the passage is ____.", options: ["Only grassland.", "Biodiversity loss, its link to ecosystem stability, and implications for conservation.", "Only experiments.", "Only policy."], correct: 1 },
+        { q: "What have long-term field experiments shown?", options: ["Nothing.", "Species richness can enhance ecosystem functioning.", "Only forests.", "Only North America."], correct: 1 },
+        { q: "The word \"complementarity\" is closest in meaning to ____.", options: ["conflict.", "species using different resources or roles that fit together.", "sampling.", "insurance."], correct: 1 },
+        { q: "What mechanisms are debated?", options: ["Only one.", "Complementarity, sampling effects, insurance effects.", "Only productivity.", "No debate."], correct: 1 },
+        { q: "What do recent meta-analyses show?", options: ["One result everywhere.", "The strength of the diversity–stability relationship varies.", "No variation.", "Only biomass."], correct: 1 },
+        { q: "What can interact with biodiversity loss?", options: ["Nothing.", "Habitat fragmentation, pollution, climate change.", "Only conservation.", "Only restoration."], correct: 1 },
+        { q: "What does the IPBES emphasise?", options: ["Only ethics.", "Preserving biodiversity is ethical and essential for ecosystem services.", "Only policy.", "No emphasis."], correct: 1 },
+        { q: "The passage is typical of ____.", options: ["a story.", "academic/scientific review.", "an ad.", "a letter."], correct: 1 },
+        { q: "We can infer that the author ____.", options: ["rejects biodiversity.", "presents evidence and policy relevance of biodiversity–stability link.", "only likes experiments.", "ignores conservation."], correct: 1 },
+        { q: "What is \"temporal stability\"?", options: ["Space.", "Stability over time.", "Only biomass.", "Only events."], correct: 1 },
+        { q: "What complicates conservation efforts?", options: ["Nothing.", "Interactions between anthropogenic drivers and biodiversity loss.", "Only diversity.", "Only policy."], correct: 1 },
+        { q: "What does \"robust evidence\" mean?", options: ["Weak.", "Strong, reliable evidence.", "Only models.", "Only field."], correct: 1 }
+      ]
     }
   ],
   "大学": [
@@ -760,6 +787,30 @@ const READING_ARTICLES = {
         { q: "The word \"enrich\" in \"enrich both sides\" means ____.", options: ["make poorer.", "make richer (in culture or experience).", "ignore.", "reduce."], correct: 1 },
         { q: "What do some people worry about?", options: ["Too much exchange.", "Local cultures might become weaker.", "Nothing.", "More music."], correct: 1 }
       ]
+    },
+    {
+      title: "Neural Mechanisms of Decision-Making Under Uncertainty: A Synthesis of Neuroeconomic Findings",
+      sentences: [
+        { en: "Decision-making under uncertainty has been a central topic in both economics and neuroscience, leading to the emergence of the interdisciplinary field of neuroeconomics.", cn: "不确定性下的决策一直是经济学和神经科学的核心议题，促成了神经经济学这一跨学科领域的出现。" },
+        { en: "Neuroeconomic studies typically combine behavioural experiments with neuroimaging techniques such as functional magnetic resonance imaging (fMRI) or electrophysiological recordings in animals and humans.", cn: "神经经济学研究通常将行为实验与神经影像技术（如功能磁共振成像）或动物与人类的电生理记录相结合。" },
+        { en: "A consistent finding across many studies is that regions including the prefrontal cortex, the striatum, and the insula are differentially activated when individuals evaluate risky or ambiguous options, compared with sure outcomes.", cn: "许多研究的一致发现是，当个体评估风险或模糊选项时，与前额叶皮层、纹状体和岛叶等区域相关的脑区相比确定结果时会被不同程度地激活。" },
+        { en: "The dopamine system, and in particular midbrain dopaminergic projections to the striatum, has been implicated in the encoding of reward prediction errors—the difference between expected and actual outcomes—which in turn is thought to guide learning and choice.", cn: "多巴胺系统，尤其是中脑多巴胺能向纹状体的投射，被认为参与编码奖赏预测误差（预期与实际结果之差），进而指导学习和选择。" },
+        { en: "Nevertheless, the precise mapping between neural activity and economic constructs such as utility, risk aversion, or ambiguity aversion remains incomplete, and causal interpretations of correlational neuroimaging data require caution.", cn: "然而，神经活动与经济构念（如效用、风险厌恶或模糊厌恶）之间的精确对应仍不完整，对相关神经影像数据的因果解释需谨慎。" },
+        { en: "Recent work has begun to integrate computational models of decision-making with neural data, allowing researchers to test whether specific brain regions represent quantities such as expected value, variance, or subjective probability.", cn: "近期研究开始将决策的计算模型与神经数据相结合，使研究者能够检验特定脑区是否表征期望值、方差或主观概率等量。" },
+        { en: "This passage has outlined key neuroeconomic findings on decision-making under uncertainty; a full treatment would require discussion of individual differences, developmental and clinical applications, and the limits of current methods.", cn: "本文概述了不确定性下决策的主要神经经济学发现；完整论述需要讨论个体差异、发展与临床应用以及当前方法的局限。" }
+      ],
+      questions: [
+        { q: "The main purpose of the passage is to ____.", options: ["promote one method.", "synthesise neuroeconomic findings on decision-making under uncertainty.", "reject neuroscience.", "only discuss dopamine."], correct: 1 },
+        { q: "What do neuroeconomic studies combine?", options: ["Only imaging.", "Behavioural experiments with neuroimaging or electrophysiology.", "Only animals.", "Nothing."], correct: 1 },
+        { q: "Which regions are mentioned as activated in risky decisions?", options: ["Only one.", "Prefrontal cortex, striatum, insula.", "Only dopamine.", "Only reward."], correct: 1 },
+        { q: "What is \"reward prediction error\"?", options: ["Only reward.", "The difference between expected and actual outcomes.", "Only dopamine.", "Only striatum."], correct: 1 },
+        { q: "What remains incomplete?", options: ["Nothing.", "Precise mapping between neural activity and economic constructs.", "Only imaging.", "Only utility."], correct: 1 },
+        { q: "What does recent work integrate?", options: ["Only behaviour.", "Computational models with neural data.", "Only risk.", "Nothing."], correct: 1 },
+        { q: "The word \"implicated\" means ____.", options: ["ignored.", "involved or suggested to play a role.", "rejected.", "only measured."], correct: 1 },
+        { q: "We can infer that the author ____.", options: ["rejects neuroeconomics.", "presents findings and acknowledges limits.", "only likes fMRI.", "ignores behaviour."], correct: 1 },
+        { q: "What does \"causal interpretations\" require?", options: ["Nothing.", "Caution.", "Only correlation.", "Only imaging."], correct: 1 },
+        { q: "This passage is best described as ____.", options: ["a narrative.", "an academic synthesis.", "an ad.", "a letter."], correct: 1 }
+      ]
     }
   ],
   "出国": [
@@ -813,6 +864,28 @@ const READING_ARTICLES = {
         { q: "We can infer that ____.", options: ["you do not need a passport.", "you need your passport and ticket to get a boarding pass.", "security is optional.", "there is no lounge."], correct: 1 },
         { q: "The word \"boarding pass\" means ____.", options: ["visa.", "document that lets you get on the plane.", "passport.", "screen."], correct: 1 },
         { q: "Why listen for announcements?", options: ["For fun.", "Gate or time might change.", "Not necessary.", "Only for boarding pass."], correct: 1 }
+      ]
+    },
+    {
+      title: "Academic Writing Conventions in English-Medium Universities: A Guide for International Graduate Students",
+      sentences: [
+        { en: "International graduate students entering English-medium universities often encounter distinct conventions in academic writing that differ from those in their home educational systems.", cn: "进入英语授课大学的国际研究生常常会遇到与其本国教育体系中不同的学术写作规范。" },
+        { en: "These conventions include expectations regarding argument structure—such as stating a thesis early and supporting it with evidence—citation styles (e.g. APA, MLA, or discipline-specific formats), and the use of hedging and cautious language when presenting claims or interpreting data.", cn: "这些规范包括对论证结构的期望（如尽早提出论点并用证据支持）、引用风格（如 APA、MLA 或学科特定格式）以及在提出主张或解释数据时使用模糊和谨慎语言。" },
+        { en: "Plagiarism, defined as the use of another's work without proper attribution, is treated with particular seriousness in most Western institutions and can result in severe academic penalties; therefore understanding how to paraphrase, quote, and cite sources is essential.", cn: "抄袭（即未适当注明出处而使用他人作品）在大多数西方院校受到特别严肃对待，可能导致严厉的学术处分；因此理解如何改述、引用和标注来源至关重要。" },
+        { en: "Furthermore, academic tone typically avoids informal language, contractions, and direct address to the reader in formal papers, while still allowing clarity and directness in expression.", cn: "此外，学术语气在正式论文中通常避免非正式用语、缩略形式和直接称呼读者，同时仍允许表达清晰直接。" },
+        { en: "Many universities offer writing centres or workshops specifically designed to support international students in developing these skills; early engagement with such resources is often recommended.", cn: "许多大学设有专门为支持国际学生培养这些技能而设计的写作中心或工作坊；通常建议尽早利用这些资源。" },
+        { en: "This passage has outlined key academic writing conventions for international graduate students; discipline-specific and genre-specific guidance should be sought from departmental advisors and sample texts in the field.", cn: "本文概述了国际研究生应掌握的主要学术写作规范；学科和体裁方面的具体指导应向系内导师及领域内的范文寻求。" }
+      ],
+      questions: [
+        { q: "The main idea of the passage is ____.", options: ["Only citations.", "Academic writing conventions in English-medium universities for international students.", "Only plagiarism.", "Only workshops."], correct: 1 },
+        { q: "What conventions are mentioned?", options: ["Only one.", "Argument structure, citation styles, hedging.", "Only APA.", "Nothing."], correct: 1 },
+        { q: "What is plagiarism?", options: ["Quoting with citation.", "Use of another's work without proper attribution.", "Only paraphrasing.", "Only formal tone."], correct: 1 },
+        { q: "What does academic tone typically avoid?", options: ["Nothing.", "Informal language, contractions, direct address in formal papers.", "Only clarity.", "Only directness."], correct: 1 },
+        { q: "What do many universities offer?", options: ["Only courses.", "Writing centres or workshops for international students.", "Nothing.", "Only advisors."], correct: 1 },
+        { q: "The word \"hedging\" here means ____.", options: ["avoiding.", "using cautious or qualified language.", "quoting only.", "informal language."], correct: 1 },
+        { q: "Why is understanding citation essential?", options: ["Not important.", "To avoid plagiarism and academic penalties.", "Only for style.", "Only for international students."], correct: 1 },
+        { q: "We can infer that the author ____.", options: ["discourages international students.", "recommends learning conventions and using writing support.", "only likes APA.", "ignores plagiarism."], correct: 1 },
+        { q: "What should students seek for discipline-specific guidance?", options: ["Only this passage.", "Departmental advisors and sample texts.", "Only workshops.", "Nothing."], correct: 1 }
       ]
     }
   ],
@@ -885,6 +958,28 @@ const READING_ARTICLES = {
         { q: "We can infer that the author ____.", options: ["rejects urbanisation.", "presents benefits and challenges and how people respond.", "only likes countryside.", "ignores pollution."], correct: 1 },
         { q: "The word \"sustainable\" here means ____.", options: ["quick.", "able to be maintained long-term without harming the environment.", "stopping growth.", "only economic."], correct: 1 }
       ]
+    },
+    {
+      title: "Renewable Energy Integration and Grid Stability: Challenges and Policy Responses",
+      sentences: [
+        { en: "The integration of variable renewable energy sources—primarily wind and solar photovoltaic—into existing electricity grids has become a priority for many governments seeking to decarbonise the power sector.", cn: "将可变可再生能源（主要是风能和太阳能光伏）纳入现有电网已成为许多寻求电力部门脱碳的政府的优先事项。" },
+        { en: "Unlike conventional dispatchable generation, wind and solar output depends on weather conditions and is therefore intermittent and partly unpredictable at fine temporal and spatial scales.", cn: "与传统的可调度发电不同，风能和太阳能输出取决于天气条件，因此具有间歇性，在精细的时间和空间尺度上部分不可预测。" },
+        { en: "This variability poses challenges for grid operators, who must maintain a continuous balance between supply and demand to ensure frequency stability and avoid blackouts.", cn: "这种可变性给电网运营商带来挑战，他们必须在供需之间保持持续平衡以确保频率稳定并避免停电。" },
+        { en: "A range of technical and institutional solutions have been proposed and implemented: improved forecasting of renewable output, demand-side response, energy storage such as batteries and pumped hydro, and stronger interconnections between regional grids.", cn: "一系列技术和制度解决方案已被提出和实施：改进可再生能源输出预测、需求侧响应、电池和抽水蓄能等储能以及区域电网之间更强的互联。" },
+        { en: "Economic and regulatory frameworks, including carbon pricing, renewable subsidies, and capacity markets, also influence the pace and pattern of renewable integration.", cn: "包括碳定价、可再生能源补贴和容量市场在内的经济和监管框架也影响着可再生能源并网的节奏和模式。" },
+        { en: "Scholars have noted that the costs of integration tend to rise as the share of variable renewables increases, though technology learning and better system design can mitigate these costs.", cn: "学者指出，随着可变可再生能源份额的增加，并网成本往往上升，尽管技术学习和更好的系统设计可以降低这些成本。" },
+        { en: "This passage has outlined key challenges and policy responses in renewable energy integration; a full treatment would require detailed discussion of specific technologies, market designs, and national contexts.", cn: "本文概述了可再生能源并网的主要挑战和政策应对；完整论述需要详细讨论具体技术、市场设计和各国国情。" }
+      ],
+      questions: [
+        { q: "The main idea of the passage is ____.", options: ["Only wind.", "Renewable energy integration, grid challenges, and policy responses.", "Only solar.", "Only storage."], correct: 1 },
+        { q: "Why is wind and solar output intermittent?", options: ["Not mentioned.", "It depends on weather conditions.", "Only wind.", "Only solar."], correct: 1 },
+        { q: "What must grid operators maintain?", options: ["Only supply.", "Balance between supply and demand.", "Only demand.", "Nothing."], correct: 1 },
+        { q: "What solutions are mentioned?", options: ["Only one.", "Forecasting, demand response, storage, interconnections.", "Only batteries.", "Nothing."], correct: 1 },
+        { q: "What influences the pace of renewable integration?", options: ["Nothing.", "Carbon pricing, subsidies, capacity markets.", "Only technology.", "Only grids."], correct: 1 },
+        { q: "The word \"dispatchable\" means ____.", options: ["variable.", "can be turned on/off or adjusted when needed.", "only renewable.", "only wind."], correct: 1 },
+        { q: "What do scholars note about integration costs?", options: ["They always fall.", "They tend to rise as renewable share increases.", "No relation.", "Only technology."], correct: 1 },
+        { q: "We can infer that the author ____.", options: ["rejects renewables.", "presents challenges and solutions for grid integration.", "only likes storage.", "ignores policy."], correct: 1 }
+      ]
     }
   ],
   "托福": [
@@ -937,6 +1032,27 @@ const READING_ARTICLES = {
         { q: "We can infer that the author ____.", options: ["ignores pressure.", "suggests balance and using support (counselling, time management, exercise).", "only likes exams.", "rejects counselling."], correct: 1 },
         { q: "The word \"overwhelmed\" means ____.", options: ["happy.", "feeling too much pressure or burden.", "bored.", "healthy."], correct: 1 },
         { q: "What do many universities provide?", options: ["Only grades.", "Counselling services for overwhelmed students.", "Only sports.", "Nothing."], correct: 1 }
+      ]
+    },
+    {
+      title: "Cognitive Load Theory and Instructional Design: Implications for Multimedia Learning",
+      sentences: [
+        { en: "Cognitive load theory, developed over several decades by John Sweller and colleagues, posits that human working memory has limited capacity and that instructional design should aim to manage the load placed on learners so that resources are available for schema acquisition and automation.", cn: "由 John Sweller 及其同事在数十年间发展的认知负荷理论认为，人类工作记忆容量有限，教学设计应旨在管理施加于学习者的负荷，以便有资源用于图式获得和自动化。" },
+        { en: "The theory distinguishes between intrinsic load (the complexity inherent in the material), extraneous load (imposed by poor design, e.g. redundant or confusing elements), and germane load (the effort devoted to learning and schema construction).", cn: "该理论区分了内在负荷（材料固有的复杂性）、外在负荷（由不良设计施加，如冗余或令人困惑的元素）和相关负荷（用于学习和图式建构的努力）。" },
+        { en: "A key prescription is to reduce extraneous load—for example by eliminating redundancy, aligning text and graphics spatially and temporally, and avoiding split attention—so that working memory can be devoted to intrinsic and germane processing.", cn: "一项关键建议是减少外在负荷，例如消除冗余、在空间和时间上对齐文字与图形、避免分散注意，从而使工作记忆能够用于内在和相关加工。" },
+        { en: "In the context of multimedia learning, Richard Mayer and others have derived principles such as the multimedia principle (people learn better from words and pictures than from words alone), the modality principle (narration with animation is often better than on-screen text with animation), and the coherence principle (excluding irrelevant material improves learning).", cn: "在多媒体学习情境中，Richard Mayer 等人推导出多媒体原则（文字与图画比仅文字学习效果更好）、模态原则（旁白与动画往往优于屏幕文字与动画）和一致性原则（排除无关材料可改善学习）等。" },
+        { en: "Meta-analyses have generally supported many of these principles, though effect sizes vary and boundary conditions—such as learner prior knowledge and the nature of the content—moderate their applicability.", cn: "元分析总体上支持其中许多原则，尽管效应量各异，且边界条件（如学习者先备知识和内容性质）会调节其适用性。" },
+        { en: "This passage has outlined cognitive load theory and its implications for multimedia instructional design; a full treatment would require discussion of measurement of cognitive load, individual differences, and emerging technologies.", cn: "本文概述了认知负荷理论及其对多媒体教学设计的意义；完整论述需要讨论认知负荷的测量、个体差异和新兴技术。" }
+      ],
+      questions: [
+        { q: "The main idea of the passage is ____.", options: ["Only memory.", "Cognitive load theory and implications for instructional design.", "Only multimedia.", "Only Mayer."], correct: 1 },
+        { q: "What does cognitive load theory posit?", options: ["Unlimited memory.", "Working memory is limited; design should manage load.", "Only schema.", "Only automation."], correct: 1 },
+        { q: "What are the three types of load?", options: ["Only one.", "Intrinsic, extraneous, germane.", "Only intrinsic.", "Only extraneous."], correct: 1 },
+        { q: "What is extraneous load?", options: ["Inherent complexity.", "Load imposed by poor design.", "Effort for learning.", "Only redundancy."], correct: 1 },
+        { q: "What does the multimedia principle state?", options: ["Words only.", "People learn better from words and pictures than words alone.", "Only pictures.", "Nothing."], correct: 1 },
+        { q: "The word \"germane\" means ____.", options: ["extraneous.", "relevant to learning.", "only intrinsic.", "redundant."], correct: 1 },
+        { q: "What do meta-analyses show?", options: ["No support.", "General support with varying effect sizes and boundary conditions.", "Only one principle.", "No variation."], correct: 1 },
+        { q: "We can infer that the author ____.", options: ["rejects the theory.", "presents the theory and evidence-based design principles.", "only likes Mayer.", "ignores load."], correct: 1 }
       ]
     }
   ],
@@ -1009,6 +1125,27 @@ const READING_ARTICLES = {
         { q: "We can infer that the author ____.", options: ["rejects theory.", "values theory in academic writing.", "only likes decoration.", "ignores evidence."], correct: 1 },
         { q: "The word \"theoretical framework\" means ____.", options: ["only one idea.", "a set of theories that structure the argument.", "only data.", "only writing."], correct: 1 },
         { q: "What does strong academic work acknowledge?", options: ["Only strengths.", "Both strengths and limitations of the theories.", "Only limitations.", "Nothing."], correct: 1 }
+      ]
+    },
+    {
+      title: "Replication Crisis and Open Science: A Critical Overview of Reforms in Psychological and Social Research",
+      sentences: [
+        { en: "The so-called replication crisis in psychology and related disciplines has drawn attention to the frequency with which published findings fail to replicate when independent researchers attempt to repeat the original studies.", cn: "心理学及相关学科中所谓的重复性危机使人们注意到，当独立研究者试图重复原始研究时，已发表结果无法被重复的频率之高。" },
+        { en: "Contributing factors identified in the literature include publication bias (the tendency to publish only positive or significant results), small sample sizes leading to low statistical power, flexible data analysis practices that allow researchers to try many analyses and report only those that \"work\", and insufficient transparency in reporting methods and data.", cn: "文献中确定的因素包括发表偏倚（只发表阳性或显著结果的倾向）、导致统计功效低的小样本、允许研究者尝试多种分析并只报告“有效”结果的灵活数据分析做法，以及方法和数据报告透明度不足。" },
+        { en: "In response, the open science movement has advocated for practices such as preregistration of hypotheses and analysis plans, sharing of data and code, and the use of replication studies and meta-analyses to assess the robustness of findings.", cn: "作为回应，开放科学运动倡导诸如假设和分析计划的预注册、数据和代码共享以及使用重复研究和元分析来评估结果的稳健性等做法。" },
+        { en: "Some journals and funders have adopted policies requiring or encouraging these practices, though implementation remains uneven across fields and regions.", cn: "一些期刊和资助方已采取要求或鼓励这些做法的政策，尽管在不同领域和地区的实施仍不均衡。" },
+        { en: "Critics have noted that not all research is amenable to direct replication, that preregistration may be less suitable for exploratory or qualitative work, and that an overemphasis on replication could discourage novel or high-risk research.", cn: "批评者指出，并非所有研究都适合直接重复、预注册可能不太适合探索性或质性工作，以及过分强调重复可能阻碍新颖或高风险研究。" },
+        { en: "This passage has outlined the replication crisis and open science reforms; a full treatment would require detailed discussion of specific disciplines, methodological alternatives, and the role of incentives and institutions.", cn: "本文概述了重复性危机与开放科学改革；完整论述需要详细讨论具体学科、方法替代方案以及激励与制度的作用。" }
+      ],
+      questions: [
+        { q: "The main idea of the passage is ____.", options: ["Only psychology.", "Replication crisis, contributing factors, and open science reforms.", "Only publication.", "Only preregistration."], correct: 1 },
+        { q: "What is the replication crisis?", options: ["No problem.", "Published findings often fail to replicate.", "Only small samples.", "Only bias."], correct: 1 },
+        { q: "What contributing factors are mentioned?", options: ["Only one.", "Publication bias, small samples, flexible analysis, lack of transparency.", "Only data.", "Nothing."], correct: 1 },
+        { q: "What does preregistration involve?", options: ["Nothing.", "Registering hypotheses and analysis plans in advance.", "Only data sharing.", "Only replication."], correct: 1 },
+        { q: "What have some journals and funders adopted?", options: ["Nothing.", "Policies requiring or encouraging open science practices.", "Only replication.", "Only meta-analysis."], correct: 1 },
+        { q: "The word \"publication bias\" means ____.", options: ["no bias.", "tendency to publish only positive or significant results.", "only replication.", "only transparency."], correct: 1 },
+        { q: "What do critics note?", options: ["All research can replicate.", "Not all research is amenable to direct replication; preregistration may not suit all work.", "No criticism.", "Only exploration."], correct: 1 },
+        { q: "We can infer that the author ____.", options: ["rejects open science.", "presents the crisis and reforms, with awareness of limits.", "only likes preregistration.", "ignores critics."], correct: 1 }
       ]
     }
   ]

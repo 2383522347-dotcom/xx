@@ -677,9 +677,9 @@
   };
 
   // 英语阅读：分级、随机文章、可点单词/句子、读后测验、达标 90% 得 600 金币
-  // 支持外部数据：设置 READING_DATA_URL 可加载每等级≥1万篇、每篇题目池≥8000，格式同 READING_ARTICLES
+  // 生产规模：设置 READING_DATA_URL 加载外部 JSON，每等级文章总数不低于 1 万篇、每等级题目池不低于 8000 题；高中及以上为长文、学术论文，可从 PLOS/arXiv/学术论坛等整理。格式同 READING_ARTICLES。
   var READING_DATA_URL = ""; // 例如 "reading-data.json" 或 "https://xxx.com/reading.json"
-  var READING_QUESTIONS_PER_QUIZ = 5; // 每次测验从该文章题目池中随机抽取的题数（仅 5 道）
+  var READING_QUESTIONS_PER_QUIZ = 5; // 每次测验仅抽 5 道题；从该文章题目池中随机抽取
   var readingDataCache = null;
   var readingDataLoading = false;
 
@@ -1852,9 +1852,9 @@
   };
 
   // 英语阅读：分级、随机文章、可点单词/句子、读后测验、达标 90% 得 600 金币
-  // 支持外部数据：设置 READING_DATA_URL 可加载每等级≥1万篇、每篇题目池≥8000，格式同 READING_ARTICLES
+  // 生产规模：设置 READING_DATA_URL 加载外部 JSON，每等级文章总数不低于 1 万篇、每等级题目池不低于 8000 题；高中及以上为长文、学术论文，可从 PLOS/arXiv/学术论坛等整理。格式同 READING_ARTICLES。
   var READING_DATA_URL = ""; // 例如 "reading-data.json" 或 "https://xxx.com/reading.json"
-  var READING_QUESTIONS_PER_QUIZ = 5; // 每次测验从该文章题目池中随机抽取的题数（仅 5 道）
+  var READING_QUESTIONS_PER_QUIZ = 5; // 每次测验仅抽 5 道题；从该文章题目池中随机抽取
   var readingDataCache = null;
   var readingDataLoading = false;
 
