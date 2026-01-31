@@ -295,6 +295,24 @@
   function setBlacklist(arr) { setJSON(KEY.blacklist, Array.isArray(arr) ? arr : []); }
 
   function buildUserData() {
+    var mp = {};
+    if (currentBookName && currentWordList && currentWordList.length > 0 && currentWordIndex < currentWordList.length) {
+      mp.wordCard = {
+        bookName: currentBookName,
+        index: currentWordIndex,
+        wordList: currentBookName === "推荐学习" ? currentWordList : null
+      };
+    }
+    if (testQuestions && testQuestions.length > 0 && testQi < testQuestions.length) {
+      mp.wordTest = { bookName: wordTestBookName, questions: testQuestions, qi: testQi, results: testResults };
+    }
+    if (vocabTestAnswers && vocabTestAnswers.length > 0 && vocabTestQi < vocabTestAnswers.length) {
+      mp.vocabTest = { qi: vocabTestQi, answers: vocabTestAnswers };
+    }
+    if (scenarioCategory && scenarioItem) mp.scenario = { category: scenarioCategory, item: scenarioItem };
+    if (currentReadingArticle) {
+      mp.reading = { level: currentReadingLevel, article: currentReadingArticle, quizQuestions: currentReadingQuizQuestions || [] };
+    }
     return {
       signInDays: getNum(KEY.signInDays),
       lastSignIn: getStr(KEY.lastSignIn),
@@ -306,7 +324,8 @@
       vocabLevelIndex: getNum(KEY.vocabLevelIndex),
       forgetReviewDays: getNum(KEY.forgetReviewDays),
       learnedCount: getNum(KEY.learnedCount),
-      wordLearnCount: getNum(KEY.wordLearnCount)
+      wordLearnCount: getNum(KEY.wordLearnCount),
+      moduleProgress: Object.keys(mp).length ? mp : null
     };
   }
   function applyUserData(d) {
@@ -322,6 +341,39 @@
     if (d.forgetReviewDays !== undefined) setNum(KEY.forgetReviewDays, d.forgetReviewDays);
     if (d.learnedCount !== undefined) setNum(KEY.learnedCount, d.learnedCount);
     if (d.wordLearnCount !== undefined) setNum(KEY.wordLearnCount, d.wordLearnCount);
+    var mp = d.moduleProgress;
+    if (mp) {
+      if (mp.wordCard) {
+        currentBookName = mp.wordCard.bookName || "";
+        currentWordIndex = Math.max(0, Math.min(mp.wordCard.index || 0, 99999));
+        if (mp.wordCard.wordList && Array.isArray(mp.wordCard.wordList) && mp.wordCard.wordList.length > 0) {
+          currentWordList = mp.wordCard.wordList;
+        } else if (currentBookName && WORD_BOOKS[currentBookName]) {
+          currentWordList = WORD_BOOKS[currentBookName].slice();
+        } else if (currentBookName && currentBookName.indexOf("基础单词-") === 0) {
+          var level = currentBookName.replace("基础单词-", "");
+          currentWordList = (BASIC_LEVEL_BOOKS[level] || []).slice();
+        } else {
+          currentWordList = [];
+        }
+      }
+      if (mp.wordTest && mp.wordTest.questions && mp.wordTest.questions.length > 0) {
+        wordTestBookName = mp.wordTest.bookName || "";
+        testQuestions = mp.wordTest.questions;
+        testQi = Math.max(0, Math.min(mp.wordTest.qi || 0, testQuestions.length));
+        testResults = Array.isArray(mp.wordTest.results) ? mp.wordTest.results : [];
+      }
+      if (mp.vocabTest && mp.vocabTest.answers && mp.vocabTest.answers.length > 0) {
+        vocabTestAnswers = mp.vocabTest.answers;
+        vocabTestQi = Math.max(0, Math.min(mp.vocabTest.qi || 0, vocabTestAnswers.length));
+      }
+      if (mp.scenario) { scenarioCategory = mp.scenario.category || ""; scenarioItem = mp.scenario.item || null; }
+      if (mp.reading && mp.reading.article) {
+        currentReadingLevel = mp.reading.level || "";
+        currentReadingArticle = mp.reading.article;
+        currentReadingQuizQuestions = Array.isArray(mp.reading.quizQuestions) ? mp.reading.quizQuestions : [];
+      }
+    }
   }
 
   function syncFromAccount() {
@@ -430,18 +482,77 @@
   // 初始化：今日学习日期
   if (!getStr(KEY.studyDate)) setStr(KEY.studyDate, todayStr());
 
-  // 主页模块点击
+  // 主页模块点击（有未完成进度时直接进入继续，否则正常选书/选级）
   document.getElementById("mainGrid").addEventListener("click", function(e) {
     const card = e.target.closest(".module-card");
     if (!card) return;
     const mod = card.getAttribute("data-module");
-    if (mod === "wordLearn") { fillWordBookSelect("selectWordBook"); showPage("pageWordBookSelect"); }
-    else if (mod === "scenario") { initScenario(); showPage("pageScenario"); }
-    else if (mod === "wordTest") { fillWordBookSelect("wordTestBookSelect"); showPage("pageWordTest"); }
-    else if (mod === "basicWord") showPage("pageBasicSelect");
-    else if (mod === "vocabTest") showPage("pageVocabTest");
-    else if (mod === "recommend") { initRecommend(); showPage("pageRecommend"); }
-    else if (mod === "reading") { loadReadingDataIfNeeded(); showPage("pageReadingSelect"); }
+    if (mod === "wordLearn") {
+      if (currentBookName && currentWordList.length > 0 && currentWordIndex < currentWordList.length) {
+        document.getElementById("wordCardTitle").textContent = currentBookName;
+        showWordCard();
+        showPage("pageWordCard");
+      } else { fillWordBookSelect("selectWordBook"); showPage("pageWordBookSelect"); }
+    } else if (mod === "scenario") {
+      initScenario();
+      if (scenarioCategory) {
+        var sel = document.getElementById("scenarioSelect");
+        if (sel) sel.value = scenarioCategory;
+      }
+      if (scenarioItem) {
+        document.getElementById("scenarioPrompt").textContent = "请翻译/表达：\n" + scenarioItem.prompt;
+        document.getElementById("scenarioInput").value = "";
+        document.getElementById("scenarioResult").classList.add("hide");
+      }
+      showPage("pageScenario");
+    } else if (mod === "wordTest") {
+      if (testQuestions.length > 0 && testQi < testQuestions.length) {
+        document.getElementById("wordTestDoCard").classList.remove("hide");
+        document.getElementById("wordTestDoResult").classList.add("hide");
+        showOneWordTestCard();
+        showPage("pageWordTestDo");
+      } else { fillWordBookSelect("wordTestBookSelect"); showPage("pageWordTest"); }
+    } else if (mod === "basicWord") {
+      if (currentBookName && currentBookName.indexOf("基础单词-") === 0 && currentWordList.length > 0 && currentWordIndex < currentWordList.length) {
+        document.getElementById("wordCardTitle").textContent = "基础单词 · " + currentBookName.replace("基础单词-", "");
+        showWordCard();
+        showPage("pageWordCard");
+      } else showPage("pageBasicSelect");
+    } else if (mod === "vocabTest") {
+      if (vocabTestAnswers.length > 0 && vocabTestQi < vocabTestAnswers.length) {
+        document.getElementById("vocabTestDoCard").classList.remove("hide");
+        document.getElementById("vocabTestDoResult").classList.add("hide");
+        showOneVocabTestCard();
+        showPage("pageVocabTestDo");
+      } else showPage("pageVocabTest");
+    } else if (mod === "recommend") {
+      if (currentBookName === "推荐学习" && currentWordList.length > 0 && currentWordIndex < currentWordList.length) {
+        document.getElementById("wordCardTitle").textContent = "推荐学习";
+        showWordCard();
+        showPage("pageWordCard");
+      } else { initRecommend(); showPage("pageRecommend"); }
+    } else if (mod === "reading") {
+      if (currentReadingArticle && currentReadingArticle.title) {
+        document.getElementById("readingArticleTitle").textContent = currentReadingArticle.title;
+        var bodyEl = document.getElementById("readingArticleBody");
+        var html = "";
+        var sentences = (currentReadingArticle.sentences || []);
+        for (var s = 0; s < sentences.length; s++) {
+          var sent = sentences[s];
+          var en = (sent.en || "").trim();
+          var parts = en.split(/([a-zA-Z']+)/);
+          var inner = "";
+          for (var p = 0; p < parts.length; p++) {
+            if (/^[a-zA-Z']+$/.test(parts[p])) {
+              inner += "<span class=\"word-clickable\" data-word=\"" + escapeHtml(parts[p]) + "\">" + escapeHtml(parts[p]) + "</span>";
+            } else inner += escapeHtml(parts[p]);
+          }
+          html += "<div class=\"sentence-block\"><span class=\"sentence-clickable\" data-sentence-index=\"" + s + "\">" + inner + "</span></div>";
+        }
+        bodyEl.innerHTML = html;
+        showPage("pageReadingArticle");
+      } else { loadReadingDataIfNeeded(); showPage("pageReadingSelect"); }
+    }
   });
 
   // 单词学习：选择单词本 -> 确认
@@ -464,13 +575,21 @@
   };
   document.getElementById("btnCardNext").onclick = function() {
     if (currentWordIndex < currentWordList.length - 1) { currentWordIndex++; showWordCard(); }
-    else { setNum(KEY.coins, getNum(KEY.coins) + 50 * (getNum(KEY.wordLearnCount) + 1)); setNum(KEY.wordLearnCount, getNum(KEY.wordLearnCount) + 1); alert("已学完本词表！"); showPage("pageHome"); }
+    else {
+      setNum(KEY.coins, getNum(KEY.coins) + 50 * (getNum(KEY.wordLearnCount) + 1)); setNum(KEY.wordLearnCount, getNum(KEY.wordLearnCount) + 1);
+      currentWordList = []; currentWordIndex = 0; currentBookName = "";
+      alert("已学完本词表！"); showPage("pageHome");
+    }
   };
   document.getElementById("btnCardKnown").onclick = function() {
     const w = currentWordList[currentWordIndex];
     if (w) { addToLearned(w); }
     if (currentWordIndex < currentWordList.length - 1) { currentWordIndex++; showWordCard(); }
-    else { setNum(KEY.coins, getNum(KEY.coins) + 50 * (getNum(KEY.wordLearnCount) + 1)); setNum(KEY.wordLearnCount, getNum(KEY.wordLearnCount) + 1); alert("已学完！"); showPage("pageHome"); }
+    else {
+      setNum(KEY.coins, getNum(KEY.coins) + 50 * (getNum(KEY.wordLearnCount) + 1)); setNum(KEY.wordLearnCount, getNum(KEY.wordLearnCount) + 1);
+      currentWordList = []; currentWordIndex = 0; currentBookName = "";
+      alert("已学完！"); showPage("pageHome");
+    }
   };
   document.getElementById("cardWordEn").onclick = function() { speakWord(document.getElementById("cardWordEn").textContent); };
 
@@ -557,10 +676,11 @@
     res.innerHTML = "<p><strong>你的表达：</strong>" + (displayInput || "—") + "</p>" + (ok ? "<p>意思正确！</p>" : "<p>意思接近或需改进。</p>") + "<p><strong>更好表达：</strong> " + scenarioItem.suggest + "</p>";
   };
 
-  // 单词测试：开始后进入答题界面，单词卡 + 提交 / 我不会 + 实时进度
+  // 单词测试：开始后进入答题界面，单词卡 + 提交 / 我不会 + 实时进度（支持中途退出后继续）
   let testQuestions = [];
   let testQi = 0;
   let testResults = [];
+  var wordTestBookName = "";
 
   document.getElementById("btnBackFromWordTest").onclick = function() { showPage("pageHome"); };
   document.getElementById("btnWordTestStart").onclick = function() {
@@ -569,6 +689,7 @@
     if (!name || !WORD_BOOKS[name]) { alert("请选择单词本"); return; }
     const words = WORD_BOOKS[name].slice();
     if (words.length < 50) { alert("词本不足50词"); return; }
+    wordTestBookName = name;
     const shuffled = words.sort(function() { return Math.random() - 0.5; });
     testQuestions = shuffled.slice(0, 50).map(function(w) {
       const showCn = Math.random() > 0.5;
@@ -603,6 +724,7 @@
       document.getElementById("wordTestDoResult").classList.remove("hide");
       document.getElementById("wordTestDoCard").classList.add("hide");
       if (rate >= 0.9) { setNum(KEY.coins, getNum(KEY.coins) + 100); alert("正确率≥90%！"); }
+      testQuestions = []; testQi = 0; testResults = []; wordTestBookName = "";
       return;
     }
     const q = testQuestions[testQi];
@@ -690,6 +812,7 @@
       document.getElementById("vocabTestDoResult").innerHTML = html;
       document.getElementById("vocabTestDoResult").classList.remove("hide");
       document.getElementById("vocabTestDoCard").classList.add("hide");
+      vocabTestQi = 0; vocabTestAnswers = [];
       refreshHeader();
       return;
     }
