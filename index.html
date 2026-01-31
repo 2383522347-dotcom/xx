@@ -264,7 +264,25 @@
             document.getElementById('gateLoginForm').classList.remove('hide');
             alert('注册成功');
           }
+          function doGateLogin(){
+            var user=(document.getElementById('gateUsername')&&document.getElementById('gateUsername').value||'').trim();
+            var pwd=document.getElementById('gatePassword')?document.getElementById('gatePassword').value:'';
+            if(!user){ alert('请输入账号'); return; }
+            var raw=localStorage.getItem('mech_accounts')||'{}';
+            var accounts={};
+            try{ accounts=JSON.parse(raw); }catch(e){}
+            if(!accounts[user]){ alert('登录失败'); return; }
+            if(accounts[user]!==pwd){ alert('密码错误'); return; }
+            try{ localStorage.setItem('mech_account',JSON.stringify({username:user,password:pwd})); }catch(e){ alert('登录失败'); return; }
+            var header=document.getElementById('appHeader');
+            if(header) header.style.display='';
+            document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+            var home=document.getElementById('pageHome');
+            if(home) home.classList.add('active');
+            alert('登录成功');
+          }
           window.doGateRegister=doGateRegister;
+          window.doGateLogin=doGateLogin;
         })();
         </script>
         <h2>机电一体化英文学习</h2>
@@ -272,7 +290,7 @@
         <div id="gateLoginForm">
           <input type="text" id="gateUsername" placeholder="账号">
           <input type="password" id="gatePassword" placeholder="密码">
-          <button type="button" class="btn" id="gateBtnLogin">登录</button>
+          <button type="button" class="btn" id="gateBtnLogin" onclick="if(window.doGateLogin)window.doGateLogin()">登录</button>
           <button type="button" class="btn" id="gateBtnShowRegister" onclick="var f=document.getElementById('gateLoginForm'); var r=document.getElementById('gateRegisterForm'); if(f&&r){ f.classList.add('hide'); r.classList.remove('hide'); document.getElementById('gateRegUsername').value=''; document.getElementById('gateRegPassword').value=''; document.getElementById('gateRegPasswordConfirm').value=''; }">注册</button>
         </div>
         <div id="gateRegisterForm" class="hide">
