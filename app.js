@@ -1229,11 +1229,6 @@
   refreshHeader();
   setInterval(refreshHeader, 1000);
 })();
-
-  function getNum(k, def) {
-    const v = localStorage.getItem(k);
-    return v !== null ? parseInt(v, 10) : (def || 0);
-  }
   function setNum(k, n) { localStorage.setItem(k, String(n)); }
   function getStr(k, def) { return localStorage.getItem(k) || def || ""; }
   function setStr(k, s) { localStorage.setItem(k, s || ""); }
