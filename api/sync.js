@@ -108,6 +108,11 @@ export default async function handler(req, res) {
           (merged.learnedWords || []).forEach(function (w) { set[(w && w.en) || ""] = w; });
           merged.learnedWords = Object.keys(set).filter(Boolean).map(function (k) { return set[k]; });
         }
+        // 连续签到：取较大值，避免多端/拉取把刚签到的天数盖回 0
+        var exDays = Math.max(0, parseInt(existing.signInDays, 10) || 0);
+        var meDays = Math.max(0, parseInt(merged.signInDays, 10) || 0);
+        merged.signInDays = Math.max(exDays, meDays);
+        if ((existing.lastSignIn || "") > (merged.lastSignIn || "")) merged.lastSignIn = existing.lastSignIn;
       }
       const toSave = { password: obj ? obj.password : password, data: merged };
       const ok = await setStored(key, JSON.stringify(toSave));

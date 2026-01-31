@@ -116,7 +116,9 @@
   }
 
   function refreshHeader() {
-    const el = document.getElementById("signInDays"); if (el) el.textContent = getNum(KEY.signInDays);
+    var days = getNum(KEY.signInDays);
+    if (getStr(KEY.lastSignIn) === todayStr() && days === 0) { setNum(KEY.signInDays, 1); days = 1; }
+    const el = document.getElementById("signInDays"); if (el) el.textContent = days;
     const el2 = document.getElementById("studyTimeDisplay"); if (el2) el2.textContent = tickStudyTime();
     const el3 = document.getElementById("learnedCount"); if (el3) el3.textContent = getJSON(KEY.learnedWords).length;
     const el4 = document.getElementById("vocabLevelDisplay"); if (el4) el4.textContent = getStr(KEY.vocabLevel) || "未检测";
@@ -359,8 +361,18 @@
   }
   function applyUserData(d) {
     if (!d) return;
-    if (d.signInDays !== undefined) setNum(KEY.signInDays, d.signInDays);
-    if (d.lastSignIn) setStr(KEY.lastSignIn, d.lastSignIn);
+    var today = todayStr();
+    if (d.lastSignIn === today) {
+      setStr(KEY.lastSignIn, d.lastSignIn);
+      var localDays = getNum(KEY.signInDays);
+      var serverDays = Math.max(0, parseInt(d.signInDays, 10) || 0);
+      setNum(KEY.signInDays, Math.max(localDays, serverDays));
+    } else if (getStr(KEY.lastSignIn) === today) {
+      // 本地今天已签到、服务器还是旧数据：不覆盖，避免拉取把连续天数盖回 0
+    } else {
+      if (d.signInDays !== undefined) setNum(KEY.signInDays, d.signInDays);
+      if (d.lastSignIn) setStr(KEY.lastSignIn, d.lastSignIn);
+    }
     if (d.studyMsToday !== undefined) {
       var today = todayStr();
       if (d.studyDate === today) {
