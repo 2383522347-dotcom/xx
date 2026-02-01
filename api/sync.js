@@ -133,7 +133,16 @@ export default async function handler(req, res) {
         if (Array.isArray(existing.learnedWords) || Array.isArray(merged.learnedWords)) {
           const set = {};
           (existing.learnedWords || []).forEach(function (w) { set[(w && w.en) || ""] = w; });
-          (merged.learnedWords || []).forEach(function (w) { set[(w && w.en) || ""] = w; });
+          (merged.learnedWords || []).forEach(function (w) {
+            const k = (w && w.en) || "";
+            if (!k) return;
+            const ex = set[k];
+            const mergedWord = { ...(ex || {}), ...(w || {}) };
+            if (ex && ex.lastReviewDate && w && w.lastReviewDate) {
+              mergedWord.lastReviewDate = (ex.lastReviewDate >= w.lastReviewDate) ? ex.lastReviewDate : w.lastReviewDate;
+            }
+            set[k] = mergedWord;
+          });
           merged.learnedWords = Object.keys(set).filter(Boolean).map(function (k) { return set[k]; });
         }
         // 连续签到：取较大值，避免多端/拉取把刚签到的天数盖回 0

@@ -183,6 +183,9 @@
     .flashcard-back .word-cn { font-size: 16px; color: var(--accent); }
     .flashcard-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: center; flex-wrap: wrap; }
     .flashcard-finish-wrap { text-align: center; margin-top: 24px; padding: 20px; border-top: 1px solid var(--border); }
+    .flashcard-btn-remember { margin-top: 16px; }
+    .flashcard-memory-tip { font-size: 11px; color: var(--text-muted); margin-top: 16px; padding: 8px 12px; background: var(--bg-soft); border-radius: 8px; line-height: 1.4; text-align: center; }
+    .flashcard-reviewed-label { display: inline-block; margin-top: 12px; font-size: 13px; color: #2d8a5e; font-weight: 500; }
 
     /* 登录门页 */
     .login-gate-box {
@@ -406,7 +409,7 @@
         <h2>遗忘曲线复习</h2>
         <button type="button" class="btn" id="btnBackFromForgetReviewDo" onclick="if(window.goBack)window.goBack('btnBackFromForgetReviewDo')">返回</button>
       </div>
-      <p style="text-align:center;color:var(--text-muted);font-size:14px;margin-bottom:12px;">点击卡片翻转查看答案 · 点击英文可发音</p>
+      <p style="text-align:center;color:var(--text-muted);font-size:14px;margin-bottom:12px;">点击「我还记得」填写答案 · 或点击卡片翻转查看</p>
       <div class="test-do-progress">
         <span>第 <strong id="forgetReviewProgressCurrent">1</strong> / <strong id="forgetReviewProgressTotal">0</strong> 张</span>
       </div>
@@ -414,12 +417,15 @@
         <div id="forgetReviewFlashcard" class="flashcard">
           <div class="flashcard-face flashcard-front">
             <span class="flashcard-prompt" id="forgetReviewFrontText">—</span>
-            <span class="flashcard-hint" id="forgetReviewFrontHint">点击卡片翻转</span>
+            <button type="button" class="btn flashcard-btn-remember" id="btnForgetReviewIRemember">我还记得</button>
+            <p class="flashcard-memory-tip" id="forgetReviewFrontTip"></p>
           </div>
           <div class="flashcard-face flashcard-back">
             <p class="word-en" id="forgetReviewBackEn" title="点击发音">—</p>
             <p class="word-phonetic" id="forgetReviewBackPhonetic"></p>
             <p class="word-cn" id="forgetReviewBackCn">—</p>
+            <span class="flashcard-reviewed-label">已经复习</span>
+            <p class="flashcard-memory-tip" id="forgetReviewBackTip"></p>
           </div>
         </div>
       </div>
@@ -662,6 +668,21 @@
   </div>
 
   <!-- 账户弹窗：退出、管理（仅 Entelch） -->
+  <!-- 遗忘复习：我还记得 - 填写答案弹窗 -->
+  <div id="modalForgetRecall" class="modal-overlay hide">
+    <div class="modal-box">
+      <button type="button" class="modal-close" id="modalForgetRecallClose">×</button>
+      <h3 id="modalForgetRecallTitle">填写对应意思</h3>
+      <p id="modalForgetRecallPrompt" style="margin-bottom:12px;color:var(--text-muted);font-size:14px;"></p>
+      <input type="text" id="modalForgetRecallInput" placeholder="请输入">
+      <p id="modalForgetRecallError" class="gate-reg-error" style="display:none;margin-top:8px;"></p>
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <button type="button" class="btn" id="btnForgetRecallSubmit">提交</button>
+        <button type="button" class="btn" id="btnForgetRecallCancel">取消</button>
+      </div>
+    </div>
+  </div>
+
   <div id="modalAccount" class="modal-overlay hide">
     <div class="modal-box">
       <button type="button" class="modal-close" id="modalAccountClose">×</button>

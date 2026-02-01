@@ -244,16 +244,60 @@
     refreshHeader();
   }
 
-  // 遗忘曲线：1天、2天、4天、7天、15天后复习
-  // 遗忘曲线：学习后第 1、2、4、7、15 天复习
+  // 遗忘曲线：1天、2天、4天、7天、15天后复习，今日已复习的不再出现
   function getTodayReviewWords() {
     const list = getJSON(KEY.learnedWords);
-    const today = new Date(); today.setHours(0,0,0,0);
+    const today = todayStr();
+    const todayDate = new Date(); todayDate.setHours(0,0,0,0);
     return list.filter(function(item) {
+      if (item.lastReviewDate === today) return false;
       const learned = new Date(item.learnedAt); learned.setHours(0,0,0,0);
-      const diffDays = Math.floor((today - learned) / (24 * 60 * 60 * 1000));
+      const diffDays = Math.floor((todayDate - learned) / (24 * 60 * 60 * 1000));
       return [1, 2, 4, 7, 15].indexOf(diffDays) >= 0;
     });
+  }
+
+  function normalizeForAnswer(s) {
+    if (!s || !String(s).trim()) return "";
+    var t = String(s).replace(/\s+/g, " ").trim();
+    return /[a-zA-Z]/.test(t) ? t.toLowerCase() : t;
+  }
+
+  function matchRecallAnswer(userInput, correctAnswer) {
+    var a = normalizeForAnswer(userInput);
+    if (!a) return false;
+    var full = normalizeForAnswer(correctAnswer);
+    if (a === full) return true;
+    var parts = (correctAnswer || "").split(/[\/、，,]/).map(function(p) { return normalizeForAnswer(p.trim()); }).filter(Boolean);
+    for (var i = 0; i < parts.length; i++) {
+      if (a === parts[i]) return true;
+    }
+    return false;
+  }
+
+  function markWordReviewedToday(wordEn) {
+    var list = getJSON(KEY.learnedWords, []);
+    for (var i = 0; i < list.length; i++) {
+      if ((list[i].en || "").toLowerCase() === (wordEn || "").toLowerCase()) {
+        list[i].lastReviewDate = todayStr();
+        setJSON(KEY.learnedWords, list);
+        return;
+      }
+    }
+  }
+
+  var MEMORY_TIPS = [
+    "间隔重复：按照遗忘曲线（1、2、4、7、15天）复习，效果最佳",
+    "主动回忆：先尝试回忆再看答案，记忆更牢固",
+    "测试效应：通过回忆测试比重复阅读更能加深记忆",
+    "多感官记忆：结合听说读写，多种感官参与",
+    "精细加工：理解词根、词缀和语境，而非死记硬背",
+    "分散学习：短时间多批次学习优于长时间一次学完",
+    "自我测试：定期自测可有效巩固记忆",
+    "艾宾浩斯曲线：及时复习是战胜遗忘的关键"
+  ];
+  function getMemoryTip(index) {
+    return MEMORY_TIPS[index % MEMORY_TIPS.length] || MEMORY_TIPS[0];
   }
 
   // 情景：模糊匹配
@@ -395,7 +439,16 @@
       var localWords = getJSON(KEY.learnedWords, []);
       var byEn = {};
       localWords.forEach(function (w) { byEn[(w && w.en) || ""] = w; });
-      d.learnedWords.forEach(function (w) { byEn[(w && w.en) || ""] = w; });
+      d.learnedWords.forEach(function (w) {
+        var k = (w && w.en) || "";
+        if (!k) return;
+        var ex = byEn[k];
+        var merged = Object.assign({}, ex || {}, w || {});
+        if (ex && ex.lastReviewDate && w && w.lastReviewDate) {
+          merged.lastReviewDate = (ex.lastReviewDate >= w.lastReviewDate) ? ex.lastReviewDate : w.lastReviewDate;
+        }
+        byEn[k] = merged;
+      });
       setJSON(KEY.learnedWords, Object.keys(byEn).filter(Boolean).map(function (k) { return byEn[k]; }));
     }
     if (d.vocabLevel) setStr(KEY.vocabLevel, d.vocabLevel);
@@ -700,6 +753,8 @@
     var backEn = document.getElementById("forgetReviewBackEn");
     var backPhonetic = document.getElementById("forgetReviewBackPhonetic");
     var backCn = document.getElementById("forgetReviewBackCn");
+    var frontTip = document.getElementById("forgetReviewFrontTip");
+    var backTip = document.getElementById("forgetReviewBackTip");
     var progressCur = document.getElementById("forgetReviewProgressCurrent");
     var progressTotal = document.getElementById("forgetReviewProgressTotal");
     var cardArea = document.getElementById("forgetReviewCardArea");
@@ -719,7 +774,6 @@
     var w = forgetReviewWords[forgetReviewIndex];
     if (!w) return;
 
-    // 随机显示中文或英文
     var showCn = Math.random() > 0.5;
     frontText.textContent = showCn ? (w.cn || "—") : (w.en || "—");
     frontText.setAttribute("data-show-cn", showCn ? "1" : "0");
@@ -730,9 +784,30 @@
     backCn.textContent = w.cn || "—";
     if (!hasPhonetic && w.en) fetchPhoneticForWord(w.en, backPhonetic);
 
+    if (frontTip) frontTip.textContent = getMemoryTip(forgetReviewIndex);
+    if (backTip) backTip.textContent = getMemoryTip(forgetReviewIndex);
+
     card.classList.remove("flipped");
     progressCur.textContent = forgetReviewIndex + 1;
     progressTotal.textContent = forgetReviewWords.length;
+  }
+
+  function removeCurrentWordAndNext() {
+    var w = forgetReviewWords[forgetReviewIndex];
+    if (w && w.en) {
+      markWordReviewedToday(w.en);
+      forgetReviewWords.splice(forgetReviewIndex, 1);
+      syncToAccount();
+      if (forgetReviewIndex >= forgetReviewWords.length && forgetReviewIndex > 0) forgetReviewIndex--;
+    }
+    if (forgetReviewWords.length === 0) {
+      document.getElementById("forgetReviewCardArea").classList.add("hide");
+      var actionsEl = document.getElementById("forgetReviewActions");
+      if (actionsEl) actionsEl.classList.add("hide");
+      document.getElementById("forgetReviewFinishWrap").classList.remove("hide");
+    } else {
+      showForgetReviewCard();
+    }
   }
 
   document.getElementById("btnForgetReview").onclick = function() {
@@ -744,10 +819,72 @@
     showPage("pageForgetReviewDo");
   };
 
+  document.getElementById("btnForgetReviewIRemember").onclick = function(e) {
+    e.stopPropagation();
+    var w = forgetReviewWords[forgetReviewIndex];
+    if (!w) return;
+    var showCn = document.getElementById("forgetReviewFrontText").getAttribute("data-show-cn") === "1";
+    var title = document.getElementById("modalForgetRecallTitle");
+    var prompt = document.getElementById("modalForgetRecallPrompt");
+    var input = document.getElementById("modalForgetRecallInput");
+    var errEl = document.getElementById("modalForgetRecallError");
+    if (showCn) {
+      title.textContent = "请输入对应的英文";
+      prompt.textContent = "中文：" + (w.cn || "—");
+      input.placeholder = "请输入英文";
+    } else {
+      title.textContent = "请输入对应的中文";
+      prompt.textContent = "英文：" + (w.en || "—");
+      input.placeholder = "请输入中文";
+    }
+    input.value = "";
+    errEl.style.display = "none";
+    errEl.textContent = "";
+    document.getElementById("modalForgetRecall").classList.remove("hide");
+    input.focus();
+  };
+
+  document.getElementById("modalForgetRecallClose").onclick = function() {
+    document.getElementById("modalForgetRecall").classList.add("hide");
+  };
+  document.getElementById("btnForgetRecallCancel").onclick = function() {
+    document.getElementById("modalForgetRecall").classList.add("hide");
+  };
+
+  document.getElementById("btnForgetRecallSubmit").onclick = function() {
+    var w = forgetReviewWords[forgetReviewIndex];
+    if (!w) return;
+    var showCn = document.getElementById("forgetReviewFrontText").getAttribute("data-show-cn") === "1";
+    var userInput = (document.getElementById("modalForgetRecallInput").value || "").trim();
+    var correctAnswer = showCn ? (w.en || "") : (w.cn || "");
+    var errEl = document.getElementById("modalForgetRecallError");
+    if (!userInput) {
+      errEl.textContent = "请填写答案";
+      errEl.style.display = "block";
+      return;
+    }
+    if (matchRecallAnswer(userInput, correctAnswer)) {
+      document.getElementById("modalForgetRecall").classList.add("hide");
+      removeCurrentWordAndNext();
+    } else {
+      errEl.textContent = "答错了，可点击卡片翻转查看答案";
+      errEl.style.display = "block";
+    }
+  };
+  document.getElementById("modalForgetRecallInput").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") document.getElementById("btnForgetRecallSubmit").click();
+  });
+
   document.getElementById("forgetReviewFlashcard").onclick = function(e) {
-    if (e.target.closest(".word-en")) return;
+    if (e.target.closest(".word-en") || e.target.closest("#btnForgetReviewIRemember")) return;
     var card = document.getElementById("forgetReviewFlashcard");
-    card.classList.toggle("flipped");
+    if (card.classList.contains("flipped")) return;
+    card.classList.add("flipped");
+    var w = forgetReviewWords[forgetReviewIndex];
+    if (w && w.en) {
+      markWordReviewedToday(w.en);
+      syncToAccount();
+    }
   };
 
   document.getElementById("forgetReviewBackEn").onclick = function(e) {
@@ -755,22 +892,30 @@
     speakWord(document.getElementById("forgetReviewBackEn").textContent);
   };
 
-  document.getElementById("btnForgetReviewPrev").onclick = function() {
+  document.getElementById("btnForgetReviewPrev").onclick = function(e) {
+    e.stopPropagation();
     if (forgetReviewIndex > 0) {
       forgetReviewIndex--;
       showForgetReviewCard();
     }
   };
 
-  document.getElementById("btnForgetReviewNext").onclick = function() {
-    if (forgetReviewIndex < forgetReviewWords.length - 1) {
-      forgetReviewIndex++;
-      showForgetReviewCard();
+  document.getElementById("btnForgetReviewNext").onclick = function(e) {
+    e.stopPropagation();
+    var card = document.getElementById("forgetReviewFlashcard");
+    if (card.classList.contains("flipped")) {
+      if (forgetReviewWords[forgetReviewIndex]) forgetReviewWords.splice(forgetReviewIndex, 1);
+      if (forgetReviewIndex >= forgetReviewWords.length) forgetReviewIndex = Math.max(0, forgetReviewWords.length - 1);
     } else {
+      forgetReviewIndex = (forgetReviewIndex + 1) % forgetReviewWords.length;
+    }
+    if (forgetReviewWords.length === 0) {
       document.getElementById("forgetReviewCardArea").classList.add("hide");
       var actionsEl = document.getElementById("forgetReviewActions");
       if (actionsEl) actionsEl.classList.add("hide");
       document.getElementById("forgetReviewFinishWrap").classList.remove("hide");
+    } else {
+      showForgetReviewCard();
     }
   };
 
