@@ -228,14 +228,115 @@
     document.getElementById("wordCardProgress").textContent = (currentWordIndex + 1) + " / " + currentWordList.length;
   }
 
+  var cachedVoice = null;
+  function loadBestVoice() {
+    if (cachedVoice) return cachedVoice;
+    if (typeof speechSynthesis === "undefined") return null;
+    var voices = speechSynthesis.getVoices();
+    if (!voices.length) return null;
+    var preferred = ["Samantha", "Microsoft Zira", "Google US English", "en-US-Neural", "Karen", "Daniel", "Alex", "en-us"];
+    for (var i = 0; i < preferred.length; i++) {
+      for (var j = 0; j < voices.length; j++) {
+        if (voices[j].name.indexOf(preferred[i]) >= 0 || voices[j].lang.indexOf("en-US") >= 0) {
+          cachedVoice = voices[j];
+          return cachedVoice;
+        }
+      }
+    }
+    for (var k = 0; k < voices.length; k++) {
+      if (voices[k].lang.indexOf("en") >= 0) { cachedVoice = voices[k]; return cachedVoice; }
+    }
+    return voices[0] || null;
+  }
+
+  var lastSpeakTime = 0;
+  function isAndroid() {
+    return /Android/i.test(navigator.userAgent || "");
+  }
   function speakWord(text) {
-    if (!window.speechSynthesis) return;
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US";
-    u.rate = 0.9;
+    if (!text || !String(text).trim()) return;
+    var now = Date.now();
+    if (now - lastSpeakTime < 300) return;
+    lastSpeakTime = now;
+    if (isAndroid()) {
+      initSpeechVoices();
+      speakWordFallback(text);
+      return;
+    }
+    initSpeechVoices();
+    if (!window.speechSynthesis) {
+      speakWordFallback(text);
+      return;
+    }
     speechSynthesis.cancel();
+    if (typeof speechSynthesis.resume === "function") speechSynthesis.resume();
+    speechSynthesis.getVoices();
+    var u = new SpeechSynthesisUtterance(String(text).trim());
+    u.lang = "en-US";
+    u.rate = 0.92;
+    u.pitch = 1;
+    u.volume = 1;
+    if (!isAndroid()) {
+      var v = loadBestVoice();
+      if (v) u.voice = v;
+    }
+    u.onerror = function() { speakWordFallback(text); };
     speechSynthesis.speak(u);
   }
+
+  function bindSpeakWithTouch(el, getTextFn) {
+    if (!el) return;
+    function doSpeak() { var t = typeof getTextFn === "function" ? getTextFn() : (el.textContent || ""); speakWord(t); }
+    el.onclick = doSpeak;
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("aria-label", "点击朗读");
+  }
+
+  function initSpeechVoices() {
+    if (typeof speechSynthesis === "undefined") return;
+    if (speechSynthesis.getVoices().length) loadBestVoice();
+    else if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = function() { loadBestVoice(); };
+    }
+  }
+
+  var TTS_API_URLS = [
+    "https://tts-api.netlify.app/?text={t}&lang=en&speed=0.95",
+    "https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q={t}"
+  ];
+  function speakWordFallback(text) {
+    if (!text || !String(text).trim()) return;
+    var t = String(text).trim().substring(0, 200).replace(/[<>"']/g, "");
+    if (!t) return;
+    var encoded = encodeURIComponent(t);
+    function tryPlay(idx) {
+      if (idx >= TTS_API_URLS.length) {
+        if (window.speechSynthesis) {
+          initSpeechVoices();
+          speechSynthesis.cancel();
+          if (typeof speechSynthesis.resume === "function") speechSynthesis.resume();
+          var u = new SpeechSynthesisUtterance(t);
+          u.lang = "en-US";
+          u.rate = 0.92;
+          if (!isAndroid()) { var v = loadBestVoice(); if (v) u.voice = v; }
+          speechSynthesis.speak(u);
+        }
+        return;
+      }
+      try {
+        var url = TTS_API_URLS[idx].replace("{t}", encoded);
+        var a = new Audio();
+        a.volume = 1;
+        a.onerror = function() { tryPlay(idx + 1); };
+        a.src = url;
+        var p = a.play();
+        if (p && p.catch) p.catch(function() { tryPlay(idx + 1); });
+      } catch (e) { tryPlay(idx + 1); }
+    }
+    tryPlay(0);
+  }
+  window.speakWordFallback = speakWordFallback;
 
   function addToLearned(w) {
     const list = getJSON(KEY.learnedWords);
@@ -714,7 +815,7 @@
       alert("已学完！"); showPage("pageHome");
     }
   };
-  document.getElementById("cardWordEn").onclick = function() { speakWord(document.getElementById("cardWordEn").textContent); };
+  bindSpeakWithTouch(document.getElementById("cardWordEn"), function() { return document.getElementById("cardWordEn").textContent; });
 
   // 返回单词卡 -> 选书
   document.getElementById("btnBackFromWordCard").onclick = function() { showPage("pageHome"); };
@@ -887,10 +988,15 @@
     }
   };
 
-  document.getElementById("forgetReviewBackEn").onclick = function(e) {
-    e.stopPropagation();
-    speakWord(document.getElementById("forgetReviewBackEn").textContent);
-  };
+  (function() {
+    var el = document.getElementById("forgetReviewBackEn");
+    if (!el) return;
+    function doSpeak(e) { if (e) e.stopPropagation(); speakWord(el.textContent); }
+    el.onclick = doSpeak;
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("aria-label", "点击朗读");
+  })();
 
   document.getElementById("btnForgetReviewPrev").onclick = function(e) {
     e.stopPropagation();
@@ -1732,11 +1838,20 @@
   }
   document.getElementById("btnReadTranslation").onclick = function() {
     if (!lastTranslationText) return;
-    var u = new SpeechSynthesisUtterance(lastTranslationText);
-    u.lang = hasChinese(lastTranslationText) ? "zh-CN" : "en-US";
-    u.rate = 0.9;
-    speechSynthesis.cancel();
-    speechSynthesis.speak(u);
+    if (hasChinese(lastTranslationText)) {
+      if (!window.speechSynthesis) return;
+      initSpeechVoices();
+      speechSynthesis.cancel();
+      if (typeof speechSynthesis.resume === "function") speechSynthesis.resume();
+      var u = new SpeechSynthesisUtterance(lastTranslationText);
+      u.lang = "zh-CN";
+      u.rate = 0.92;
+      var voices = speechSynthesis.getVoices();
+      for (var i = 0; i < voices.length; i++) { if (voices[i].lang.indexOf("zh-CN") >= 0) { u.voice = voices[i]; break; } }
+      speechSynthesis.speak(u);
+    } else {
+      speakWord(lastTranslationText);
+    }
   };
 
   var translateDebounceTimer = null;
@@ -1800,7 +1915,7 @@
   });
 
   document.getElementById("modalLetterCardClose").onclick = function() { document.getElementById("modalLetterCard").classList.add("hide"); };
-  document.getElementById("letterCardEn").onclick = function() { speakWord(document.getElementById("letterCardEn").textContent); };
+  bindSpeakWithTouch(document.getElementById("letterCardEn"), function() { return document.getElementById("letterCardEn").textContent; });
   document.getElementById("btnLetterCardKnown").onclick = function() {
     var en = (document.getElementById("letterCardEn").textContent || "").trim();
     var cn = (document.getElementById("letterCardCn").textContent || "").trim();
@@ -1827,6 +1942,8 @@
 
   refreshHeader();
   setInterval(refreshHeader, 1000);
+  initSpeechVoices();
+  setTimeout(initSpeechVoices, 500);
 
   // 每秒推送：今日学习时间、连续签到、签到状态、已学单词、词汇等级等主页数据实时同步到云端
   setInterval(function() {
