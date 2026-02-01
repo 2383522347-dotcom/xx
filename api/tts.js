@@ -4,7 +4,25 @@
  */
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "JBFqnCBsd6RMkjVDRZzb"; // 默认英文女声 Rachel
+const DEFAULT_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb"; // 默认英文女声 Rachel
+const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || DEFAULT_VOICE_ID;
+
+async function callElevenLabs(voiceId, text) {
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: {
+      "xi-api-key": ELEVENLABS_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text: text,
+      model_id: "eleven_multilingual_v2",
+      voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+    }),
+  });
+  return resp;
+}
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -34,20 +52,10 @@ export default async function handler(req, res) {
   const voiceId = req.body?.voice_id || req.query?.voice_id || ELEVENLABS_VOICE_ID;
 
   try {
-    const url = `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`;
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: {
-        "xi-api-key": ELEVENLABS_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        text: text,
-        model_id: "eleven_multilingual_v2",
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
-      }),
-    });
-
+    let resp = await callElevenLabs(voiceId, text);
+    if (!resp.ok && (resp.status === 404 || resp.status === 422) && voiceId !== DEFAULT_VOICE_ID) {
+      resp = await callElevenLabs(DEFAULT_VOICE_ID, text);
+    }
     if (!resp.ok) {
       const errText = await resp.text();
       let errMsg = "ElevenLabs 请求失败";
