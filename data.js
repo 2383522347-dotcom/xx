@@ -149,6 +149,59 @@ const WORD_BOOK_25 = [
   { en: "Display", phonetic: "", cn: "显示" }
 ];
 
+// 单词记忆方法：教用户如何记住该词
+const WORD_MEMORY_TIPS = {
+  "station": "【词根】stat-站 + -ion 名词 → 联想「操作站」就是站着操作的地方",
+  "handling station": "【拆分】Handling 搬运 + Station 站 → 搬运站/操作手站",
+  "sensor": "【词根】sens-感觉 + -or 表物 → 传感器=感知信号的装置",
+  "transducer": "【词根】trans-跨越 + duc-引导 → 将一种能量转换成另一种",
+  "actuator": "【词根】act-行动 + -uator 执行器 → 执行动作的装置",
+  "cylinder": "【联想】圆柱形气缸，cylinder 本义就是圆柱体",
+  "valve": "【发音】/vælv/ 阀，控制流体开关的部件",
+  "motor": "【音译】马达，Motor 与马达发音相近",
+  "conveyor": "【词根】con-一起 + vey-运送 → 传送带把东西一起运送",
+  "gripper": "【词根】grip 抓取 + -er 表物 → 夹爪=抓取东西的装置",
+  "system": "【联想】sys-整体 + tem → 系统是各部分的整体",
+  "control system": "【拆分】Control 控制 + System 系统 → 控制系统",
+  "plc": "【缩写】Programmable Logic Controller 可编程逻辑控制器，记首字母",
+  "hmi": "【缩写】Human Machine Interface 人机界面，人与机器交互的界面",
+  "module": "【联想】模块化设计，每个 module 是独立功能单元",
+  "component": "【词根】com-一起 + pon-放 → 元器件=组装在一起的零件",
+  "cable": "【联想】线缆像一根根 cable 电缆",
+  "wire": "【联想】wire 电线，布线 wiring",
+  "terminal": "【词根】termin-终点 → 终端/接线端子",
+  "signal": "【联想】sign 记号 + al → 信号=传递信息的记号",
+  "digital": "【词根】digit 数字 + -al → 数字的",
+  "analog": "【联想】与 digital 相对，模拟量连续变化",
+  "assemble": "【词根】as-到 + semble 类似 → 把相似的零件组装到一起",
+  "calibrate": "【联想】校准=让仪器准确，calibrate 与 calibration 校准",
+  "pneumatic": "【词根】pneu-气 + -matic → 气动的，与空气有关",
+  "hydraulic": "【词根】hydr-水 + -aulic → 液压的，用水/油传力",
+  "vacuum": "【联想】真空=空无一物，vacuum 吸尘器也靠真空吸力",
+  "encoder": "【词根】en-使 + code 编码 → 编码器=把位置转为信号",
+  "conveyor": "【词根】convey 运送 + -or → 传送带",
+  "microcontroller": "【拆分】Micro 微 + Controller 控制器 → 微控制器",
+  "servo motor": "【联想】Servo 伺服，伺服电机=精准跟随指令的电机",
+  "stepper motor": "【联想】Step 步进，一步一步转动的电机",
+  "pick & place": "【拆分】Pick 取 + Place 放 → 取放动作",
+  "retract": "【词根】re-回 + tract-拉 → 缩回",
+  "extend": "【词根】ex-出 + tend-伸展 → 伸出",
+  "reset": "【拆分】Re-再 + Set 设置 → 复位=重新设置",
+  "voltage": "【联想】volt 伏特，电压的单位",
+  "current": "【注意】电流 current 与「当前」同形，语境区分",
+  "circuit": "【词根】circ-圆 + -uit → 电路=电流走的环路",
+  "troubleshoot": "【拆分】Trouble 故障 + Shoot 射击 → 排除故障",
+  "input": "【联想】in 入 + put 放 → 输入=把信息放进去",
+  "output": "【联想】out 出 + put 放 → 输出=把信息放出来",
+  "linear": "【词根】line 线 + -ar → 线性的，直线运动",
+  "vertical": "【词根】vert-转（向上转）→ 竖直的、纵向的",
+  "robot": "【音译】机器人，Robotic arm 机械臂",
+  "workpiece": "【拆分】Work 工件 + Piece 件 → 工件",
+  "communication": "【词根】com-共同 + mun-服务 → 通信=共同交流",
+  "maintain": "【词根】main 保持 + tain 持 → 维护=保持良好",
+  "optimize": "【词根】opt-最佳 + -ize 使 → 优化=使达到最佳"
+};
+
 // 情景对话：每组 { prompt: 中文/场景, answers: [可接受的英文], suggest: 更好表达 }
 const SCENARIO_DIALOGUES = {
   multimeter: {

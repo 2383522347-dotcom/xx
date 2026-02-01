@@ -88,6 +88,7 @@
     .word-card-box .word-en:hover { color: var(--accent); }
     .word-card-box .word-phonetic { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; transition: color 0.25s var(--ease); }
     .word-card-box .word-cn { font-size: 16px; color: var(--accent); transition: color 0.25s var(--ease); }
+    .word-memory-tip { font-size: 11px; color: var(--text-muted); margin-top: 12px; padding: 8px 12px; background: var(--bg-soft); border-radius: 8px; line-height: 1.4; }
     .word-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: center; flex-wrap: wrap; }
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000;
@@ -384,6 +385,7 @@
         <p class="word-en" id="cardWordEn" title="点击发音">—</p>
         <p class="word-phonetic" id="cardWordPhonetic"></p>
         <p class="word-cn" id="cardWordCn">—</p>
+        <p class="word-memory-tip" id="cardWordMemoryTip"></p>
         <div class="word-actions">
           <button type="button" class="btn" id="btnCardPrev">上一个</button>
           <button type="button" class="btn" id="btnCardNext">下一个</button>

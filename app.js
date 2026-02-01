@@ -223,6 +223,8 @@
     document.getElementById("cardWordEn").textContent = w.en;
     document.getElementById("cardWordPhonetic").textContent = w.phonetic || "";
     document.getElementById("cardWordCn").textContent = w.cn;
+    var tipEl = document.getElementById("cardWordMemoryTip");
+    if (tipEl) tipEl.textContent = getWordMemoryTip(w);
     document.getElementById("wordCardProgress").textContent = (currentWordIndex + 1) + " / " + currentWordList.length;
   }
 
@@ -286,18 +288,16 @@
     }
   }
 
-  var MEMORY_TIPS = [
-    "间隔重复：按照遗忘曲线（1、2、4、7、15天）复习，效果最佳",
-    "主动回忆：先尝试回忆再看答案，记忆更牢固",
-    "测试效应：通过回忆测试比重复阅读更能加深记忆",
-    "多感官记忆：结合听说读写，多种感官参与",
-    "精细加工：理解词根、词缀和语境，而非死记硬背",
-    "分散学习：短时间多批次学习优于长时间一次学完",
-    "自我测试：定期自测可有效巩固记忆",
-    "艾宾浩斯曲线：及时复习是战胜遗忘的关键"
-  ];
-  function getMemoryTip(index) {
-    return MEMORY_TIPS[index % MEMORY_TIPS.length] || MEMORY_TIPS[0];
+  // 获取该单词的记忆方法：优先查 WORD_MEMORY_TIPS，否则生成联想提示
+  function getWordMemoryTip(word) {
+    if (!word) return "";
+    var en = (word.en || "").trim().toLowerCase();
+    var tips = typeof WORD_MEMORY_TIPS !== "undefined" ? WORD_MEMORY_TIPS : {};
+    if (tips[en]) return tips[en];
+    var firstPart = en.split(/\s+|\/|\(/)[0] || "";
+    if (tips[firstPart]) return tips[firstPart];
+    var cn = (word.cn || "").trim();
+    return "联想：将「" + (word.en || "") + "」与「" + cn + "」对应，多读几遍并结合例句记忆";
   }
 
   // 情景：模糊匹配
@@ -784,8 +784,8 @@
     backCn.textContent = w.cn || "—";
     if (!hasPhonetic && w.en) fetchPhoneticForWord(w.en, backPhonetic);
 
-    if (frontTip) frontTip.textContent = getMemoryTip(forgetReviewIndex);
-    if (backTip) backTip.textContent = getMemoryTip(forgetReviewIndex);
+    if (frontTip) frontTip.textContent = getWordMemoryTip(w);
+    if (backTip) backTip.textContent = getWordMemoryTip(w);
 
     card.classList.remove("flipped");
     progressCur.textContent = forgetReviewIndex + 1;
