@@ -253,11 +253,41 @@
   function isAndroid() {
     return /Android/i.test(navigator.userAgent || "");
   }
+  function getTtsApiUrl() {
+    try {
+      var o = window.location && window.location.origin;
+      if (o && o !== "null" && (o.indexOf("http://") === 0 || o.indexOf("https://") === 0)) return o + "/api/tts";
+    } catch (e) {}
+    return "";
+  }
   function speakWord(text) {
     if (!text || !String(text).trim()) return;
     var now = Date.now();
     if (now - lastSpeakTime < 300) return;
     lastSpeakTime = now;
+    var ttsUrl = getTtsApiUrl();
+    if (ttsUrl) {
+      fetch(ttsUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: String(text).trim().substring(0, 500) })
+      }).then(function(r) {
+        if (r.ok && r.headers.get("content-type") && r.headers.get("content-type").indexOf("audio") >= 0) {
+          return r.blob();
+        }
+        throw new Error("TTS not available");
+      }).then(function(blob) {
+        var url = URL.createObjectURL(blob);
+        var a = new Audio(url);
+        a.volume = 1;
+        a.onended = function() { URL.revokeObjectURL(url); };
+        a.onerror = function() { URL.revokeObjectURL(url); speakWordFallback(text); };
+        a.play().catch(function() { URL.revokeObjectURL(url); speakWordFallback(text); });
+      }).catch(function() {
+        speakWordFallback(text);
+      });
+      return;
+    }
     if (isAndroid()) {
       initSpeechVoices();
       speakWordFallback(text);

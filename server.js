@@ -90,6 +90,55 @@ app.post("/api/sync", function(req, res) {
   res.json({ data: userData[username] || {} });
 });
 
+// ElevenLabs TTS 代理（本地测试用，Vercel 部署时用 api/tts.js）
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "JBFqnCBsd6RMkjVDRZzb";
+
+app.post("/api/tts", function(req, res) {
+  if (!ELEVENLABS_API_KEY) {
+    return res.status(503).json({ error: "TTS not configured", hint: "请设置环境变量 ELEVENLABS_API_KEY" });
+  }
+  var text = (req.body && req.body.text) ? String(req.body.text).trim() : "";
+  if (!text || text.length > 500) {
+    return res.status(400).json({ error: "请提供 text 参数，且不超过 500 字符" });
+  }
+  var voiceId = (req.body && req.body.voice_id) || ELEVENLABS_VOICE_ID;
+  var body = JSON.stringify({
+    text: text,
+    model_id: "eleven_multilingual_v2",
+    voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+  });
+  var https = require("https");
+  var opt = {
+    hostname: "api.elevenlabs.io",
+    path: "/v1/text-to-speech/" + encodeURIComponent(voiceId),
+    method: "POST",
+    headers: {
+      "xi-api-key": ELEVENLABS_API_KEY,
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(body),
+    },
+  };
+  var req2 = https.request(opt, function(r2) {
+    var chunks = [];
+    r2.on("data", function(c) { chunks.push(c); });
+    r2.on("end", function() {
+      var buf = Buffer.concat(chunks);
+      if (r2.statusCode !== 200) {
+        return res.status(r2.statusCode).json({ error: "ElevenLabs 请求失败" });
+      }
+      res.setHeader("Content-Type", "audio/mpeg");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      res.send(buf);
+    });
+  });
+  req2.on("error", function(e) {
+    res.status(500).json({ error: "TTS 请求失败: " + (e.message || "未知错误") });
+  });
+  req2.write(body);
+  req2.end();
+});
+
 // 静态页面（index、app.js、data.js 等）
 app.get("/", function(req, res) {
   res.sendFile(path.join(__dirname, "index.html"));
