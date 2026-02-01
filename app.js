@@ -323,6 +323,8 @@
     currentReadingArticle = null;
     currentReadingLevel = "";
     currentReadingQuizQuestions = [];
+    forgetReviewWords = [];
+    forgetReviewIndex = 0;
   }
 
   function buildUserData() {
@@ -675,35 +677,116 @@
       div.innerHTML = "<span>" + item.en + "</span><span style='color:var(--text-muted)'>" + item.cn + "</span>";
       ul.appendChild(div);
     });
-    document.getElementById("forgetReviewArea").classList.add("hide");
     showPage("pageLearned");
   };
   document.getElementById("btnBackFromLearned").onclick = function() { showPage("pageHome"); };
 
+  // 遗忘复习：翻卡界面（随机显示中文或英文，点击翻转）
+  var forgetReviewWords = [];
+  var forgetReviewIndex = 0;
+
+  function shuffleArrayForReview(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function showForgetReviewCard() {
+    var card = document.getElementById("forgetReviewFlashcard");
+    var frontText = document.getElementById("forgetReviewFrontText");
+    var backEn = document.getElementById("forgetReviewBackEn");
+    var backPhonetic = document.getElementById("forgetReviewBackPhonetic");
+    var backCn = document.getElementById("forgetReviewBackCn");
+    var progressCur = document.getElementById("forgetReviewProgressCurrent");
+    var progressTotal = document.getElementById("forgetReviewProgressTotal");
+    var cardArea = document.getElementById("forgetReviewCardArea");
+    var finishWrap = document.getElementById("forgetReviewFinishWrap");
+
+    var actionsEl = document.getElementById("forgetReviewActions");
+    if (forgetReviewWords.length === 0) {
+      cardArea.classList.add("hide");
+      if (actionsEl) actionsEl.classList.add("hide");
+      finishWrap.classList.remove("hide");
+      return;
+    }
+    cardArea.classList.remove("hide");
+    if (actionsEl) actionsEl.classList.remove("hide");
+    finishWrap.classList.add("hide");
+
+    var w = forgetReviewWords[forgetReviewIndex];
+    if (!w) return;
+
+    // 随机显示中文或英文
+    var showCn = Math.random() > 0.5;
+    frontText.textContent = showCn ? (w.cn || "—") : (w.en || "—");
+    frontText.setAttribute("data-show-cn", showCn ? "1" : "0");
+
+    backEn.textContent = w.en || "—";
+    var hasPhonetic = w.phonetic && String(w.phonetic).trim();
+    backPhonetic.textContent = hasPhonetic ? (w.phonetic.indexOf("/") === 0 ? w.phonetic : "/" + w.phonetic + "/") : "加载中…";
+    backCn.textContent = w.cn || "—";
+    if (!hasPhonetic && w.en) fetchPhoneticForWord(w.en, backPhonetic);
+
+    card.classList.remove("flipped");
+    progressCur.textContent = forgetReviewIndex + 1;
+    progressTotal.textContent = forgetReviewWords.length;
+  }
+
   document.getElementById("btnForgetReview").onclick = function() {
-    const words = getTodayReviewWords();
-    const area = document.getElementById("forgetReviewArea");
-    const listEl = document.getElementById("forgetReviewList");
-    const countEl = document.getElementById("forgetReviewCount");
+    var words = getTodayReviewWords();
     if (words.length === 0) { alert("今日无需复习或已复习完毕"); return; }
-    countEl.textContent = words.length;
-    listEl.innerHTML = "";
-    words.forEach(function(w) {
-      const div = document.createElement("div");
-      div.className = "learn-item";
-      div.innerHTML = "<span>" + w.en + "</span><span>" + w.cn + "</span>";
-      listEl.appendChild(div);
-    });
-    area.classList.remove("hide");
+    forgetReviewWords = shuffleArrayForReview(words);
+    forgetReviewIndex = 0;
+    showForgetReviewCard();
+    showPage("pageForgetReviewDo");
   };
+
+  document.getElementById("forgetReviewFlashcard").onclick = function(e) {
+    if (e.target.closest(".word-en")) return;
+    var card = document.getElementById("forgetReviewFlashcard");
+    card.classList.toggle("flipped");
+  };
+
+  document.getElementById("forgetReviewBackEn").onclick = function(e) {
+    e.stopPropagation();
+    speakWord(document.getElementById("forgetReviewBackEn").textContent);
+  };
+
+  document.getElementById("btnForgetReviewPrev").onclick = function() {
+    if (forgetReviewIndex > 0) {
+      forgetReviewIndex--;
+      showForgetReviewCard();
+    }
+  };
+
+  document.getElementById("btnForgetReviewNext").onclick = function() {
+    if (forgetReviewIndex < forgetReviewWords.length - 1) {
+      forgetReviewIndex++;
+      showForgetReviewCard();
+    } else {
+      document.getElementById("forgetReviewCardArea").classList.add("hide");
+      var actionsEl = document.getElementById("forgetReviewActions");
+      if (actionsEl) actionsEl.classList.add("hide");
+      document.getElementById("forgetReviewFinishWrap").classList.remove("hide");
+    }
+  };
+
   document.getElementById("btnFinishForgetReview").onclick = function() {
-    const words = getTodayReviewWords();
-    const days = getNum(KEY.forgetReviewDays) + 1;
+    var days = getNum(KEY.forgetReviewDays) + 1;
     setNum(KEY.forgetReviewDays, days);
     setNum(KEY.coins, getNum(KEY.coins) + 50 * days);
     setStr(KEY.lastForgetReview, todayStr());
-    document.getElementById("forgetReviewArea").classList.add("hide");
-    alert("复习完成！");
+    refreshHeader();
+    syncToAccount();
+    showPage("pageLearned");
+    alert("复习完成！获得 " + (50 * days) + " 金币");
+  };
+
+  document.getElementById("btnBackFromForgetReviewDo").onclick = function() {
+    showPage("pageLearned");
   };
 
   // 情景对话
