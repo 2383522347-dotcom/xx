@@ -260,18 +260,20 @@
     } catch (e) {}
     return "";
   }
+  var ttsApiQuotaExceeded = false;
   function speakWord(text) {
     if (!text || !String(text).trim()) return;
     var now = Date.now();
     if (now - lastSpeakTime < 300) return;
     lastSpeakTime = now;
     var ttsUrl = getTtsApiUrl();
-    if (ttsUrl) {
+    if (ttsUrl && !ttsApiQuotaExceeded) {
       fetch(ttsUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: String(text).trim().substring(0, 500) })
       }).then(function(r) {
+        if (r.status === 402) ttsApiQuotaExceeded = true;
         if (r.ok && r.headers.get("content-type") && r.headers.get("content-type").indexOf("audio") >= 0) {
           return r.blob();
         }
