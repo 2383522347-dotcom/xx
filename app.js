@@ -585,7 +585,7 @@
       var localCoins = getNum(KEY.coins);
       var serverCoins = Math.max(0, parseInt(d.coins, 10) || 0);
       var lastPurchase = parseInt(getStr(KEY.lastPurchaseTime), 10) || 0;
-      if (lastPurchase && (Date.now() - lastPurchase) < 15000 && serverCoins > localCoins) {
+      if (lastPurchase && (Date.now() - lastPurchase) < 30000 && serverCoins > localCoins) {
         setNum(KEY.coins, localCoins);
         setStr(KEY.lastPurchaseTime, "");
       } else {
@@ -1655,10 +1655,20 @@
     };
   }
   document.getElementById("btnMall").onclick = function() {
-    document.getElementById("mallCoins").textContent = getNum(KEY.coins);
-    renderMallProducts();
-    updateMallTotal();
-    document.getElementById("modalMall").classList.remove("hide");
+    function showMall() {
+      document.getElementById("mallCoins").textContent = getNum(KEY.coins);
+      renderMallProducts();
+      updateMallTotal();
+      document.getElementById("modalMall").classList.remove("hide");
+    }
+    if (SYNC_API_URL && getAccount().username) {
+      syncFromServer(function(ok, hadData) {
+        refreshHeader();
+        showMall();
+      });
+    } else {
+      showMall();
+    }
   };
   document.getElementById("modalMallClose").onclick = function() { document.getElementById("modalMall").classList.add("hide"); };
   document.getElementById("modalProductCardClose").onclick = function() { document.getElementById("modalProductCard").classList.add("hide"); };
