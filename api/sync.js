@@ -123,7 +123,9 @@ export default async function handler(req, res) {
           const b = Number(merged.studyMsToday) || 0;
           merged.studyMsToday = Math.max(a, b);
         }
-        merged.coins = Math.max(Number(existing.coins) || 0, Number(merged.coins) || 0);
+        const existingCoins = Number(existing.coins) || 0;
+        const clientCoins = Number(merged.coins) || 0;
+        merged.coins = clientCoins < existingCoins ? clientCoins : Math.max(existingCoins, clientCoins);
         if (existing.vocabLevelIndex !== undefined && existing.vocabLevelIndex !== null && merged.vocabLevelIndex !== undefined && merged.vocabLevelIndex !== null) {
           var ei = Number(existing.vocabLevelIndex) || 0;
           var mi = Number(merged.vocabLevelIndex) || 0;
