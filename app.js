@@ -1603,14 +1603,19 @@
   var btnMallBuyEl = document.getElementById("btnMallBuy");
   if (btnMallBuyEl) {
     btnMallBuyEl.onclick = function() {
-      // 按当前勾选数量计算总价：每个商品 (单价 × 数量) 相加
+      // 总价 = 所有商品 (单价 × 数量) 之和，必须为有效数字
       var totalPrice = 0;
       MALL_PRODUCTS.forEach(function(p) {
         var qty = parseInt(mallQuantities[p.id], 10) || 0;
-        totalPrice += p.price * qty;
+        var price = Number(p.price);
+        if (!isNaN(price) && !isNaN(qty)) totalPrice += price * qty;
       });
-      if (totalPrice <= 0) return;
-      var currentCoins = parseInt(getNum(KEY.coins), 10) || 0;
+      totalPrice = Number(totalPrice);
+      if (isNaN(totalPrice) || totalPrice <= 0) return;
+      // 当前金币：直接从 localStorage 读，确保是数字
+      var rawCoins = localStorage.getItem(KEY.coins);
+      var currentCoins = (rawCoins !== null && rawCoins !== "") ? parseInt(rawCoins, 10) : 0;
+      if (isNaN(currentCoins)) currentCoins = 0;
       if (currentCoins < totalPrice) {
         var toast = document.getElementById("toastMallNotEnough");
         if (toast) {
@@ -1619,14 +1624,15 @@
         }
         return;
       }
-      setNum(KEY.coins, currentCoins - totalPrice);
+      var afterCoins = Math.max(0, currentCoins - totalPrice);
+      setNum(KEY.coins, afterCoins);
       mallJustBought = true;
       MALL_PRODUCTS.forEach(function(p) {
         mallQuantities[p.id] = 0;
       });
       renderMallProducts();
       var mallCoinsEl = document.getElementById("mallCoins");
-      if (mallCoinsEl) mallCoinsEl.textContent = getNum(KEY.coins);
+      if (mallCoinsEl) mallCoinsEl.textContent = afterCoins;
       refreshHeader();
       syncToAccount();
     };
