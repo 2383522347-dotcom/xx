@@ -16,7 +16,8 @@
     accounts: "mech_accounts",
     blacklist: "mech_blacklist",
     learnedCount: "mech_learnedCount",
-    wordLearnCount: "mech_wordLearnCount"
+    wordLearnCount: "mech_wordLearnCount",
+    mallBackpack: "mech_mallBackpack"
   };
 
   function getNum(k, def) {
@@ -515,6 +516,7 @@
     currentReadingQuizQuestions = [];
     forgetReviewWords = [];
     forgetReviewIndex = 0;
+    setJSON(KEY.mallBackpack, {});
   }
 
   function buildUserData() {
@@ -548,6 +550,7 @@
       forgetReviewDays: getNum(KEY.forgetReviewDays),
       learnedCount: getNum(KEY.learnedCount),
       wordLearnCount: getNum(KEY.wordLearnCount),
+      mallBackpack: getJSON(KEY.mallBackpack, {}),
       moduleProgress: Object.keys(mp).length ? mp : null
     };
   }
@@ -607,6 +610,7 @@
     if (d.forgetReviewDays !== undefined) setNum(KEY.forgetReviewDays, d.forgetReviewDays);
     if (d.learnedCount !== undefined) setNum(KEY.learnedCount, d.learnedCount);
     if (d.wordLearnCount !== undefined) setNum(KEY.wordLearnCount, d.wordLearnCount);
+    if (d.mallBackpack && typeof d.mallBackpack === "object") setJSON(KEY.mallBackpack, d.mallBackpack);
     var mp = d.moduleProgress;
     if (mp) {
       if (mp.wordCard) {
@@ -668,6 +672,11 @@
       syncToServerTimer = setTimeout(syncToServer, 800);
     }
   }
+  function syncToServerNow() {
+    clearTimeout(syncToServerTimer);
+    syncToServerTimer = null;
+    syncToServer();
+  }
 
   function syncFromServer(cb) {
     const acc = getAccount();
@@ -710,11 +719,11 @@
       })
       .then(function(res) {
         if (res && res.data) {
-          if (mallJustBought && res.data.coins !== undefined) {
-            var curCoins = getNum(KEY.coins);
-            if (parseInt(res.data.coins, 10) > curCoins) {
-              res.data = Object.assign({}, res.data, { coins: curCoins });
-            }
+          if (mallJustBought) {
+            res.data = Object.assign({}, res.data, {
+              coins: getNum(KEY.coins),
+              mallBackpack: getJSON(KEY.mallBackpack, {})
+            });
             mallJustBought = false;
           }
           applyUserData(res.data);
@@ -1627,14 +1636,21 @@
       var afterCoins = Math.max(0, currentCoins - totalPrice);
       setNum(KEY.coins, afterCoins);
       mallJustBought = true;
+      var backpack = getJSON(KEY.mallBackpack, {});
       MALL_PRODUCTS.forEach(function(p) {
+        var qty = parseInt(mallQuantities[p.id], 10) || 0;
+        if (qty > 0) {
+          backpack[p.id] = (parseInt(backpack[p.id], 10) || 0) + qty;
+        }
         mallQuantities[p.id] = 0;
       });
+      setJSON(KEY.mallBackpack, backpack);
       renderMallProducts();
       var mallCoinsEl = document.getElementById("mallCoins");
       if (mallCoinsEl) mallCoinsEl.textContent = afterCoins;
       refreshHeader();
       syncToAccount();
+      syncToServerNow();
     };
   }
   document.getElementById("btnMall").onclick = function() {
@@ -1645,6 +1661,30 @@
   };
   document.getElementById("modalMallClose").onclick = function() { document.getElementById("modalMall").classList.add("hide"); };
   document.getElementById("modalProductCardClose").onclick = function() { document.getElementById("modalProductCard").classList.add("hide"); };
+  function renderBackpack() {
+    var list = document.getElementById("backpackList");
+    if (!list) return;
+    var backpack = getJSON(KEY.mallBackpack, {});
+    var hasAny = false;
+    var html = "";
+    MALL_PRODUCTS.forEach(function(p) {
+      var qty = parseInt(backpack[p.id], 10) || 0;
+      if (qty <= 0) return;
+      hasAny = true;
+      html += "<div class=\"backpack-item\">" +
+        "<div class=\"backpack-item-img\">" + (p.img || "📦") + "</div>" +
+        "<div class=\"backpack-item-info\">" +
+        "<div class=\"backpack-item-name\">" + p.name + "</div>" +
+        "<div class=\"backpack-item-qty\">数量：" + qty + "</div>" +
+        "</div></div>";
+    });
+    list.innerHTML = hasAny ? html : "<p style=\"color:var(--text-muted);padding:16px;text-align:center;\">暂无商品</p>";
+  }
+  document.getElementById("btnMallBackpack").onclick = function() {
+    renderBackpack();
+    document.getElementById("modalBackpack").classList.remove("hide");
+  };
+  document.getElementById("modalBackpackClose").onclick = function() { document.getElementById("modalBackpack").classList.add("hide"); };
 
   document.getElementById("btnAccount").onclick = function() {
     const acc = getAccount();
