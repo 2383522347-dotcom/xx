@@ -205,6 +205,7 @@
     { id: "watermelon_seed", name: "西瓜种子", price: 15, desc: "还没想好", maturityMax: 6, img: "🍉", func: "种植" }
   ];
   var mallQuantities = {};
+  var mallJustBought = false;
 
   function fillWordBookSelect(selectId) {
     const sel = document.getElementById(selectId);
@@ -708,7 +709,16 @@
         return r.json();
       })
       .then(function(res) {
-        if (res && res.data) applyUserData(res.data);
+        if (res && res.data) {
+          if (mallJustBought && res.data.coins !== undefined) {
+            var curCoins = getNum(KEY.coins);
+            if (parseInt(res.data.coins, 10) > curCoins) {
+              res.data = Object.assign({}, res.data, { coins: curCoins });
+            }
+            mallJustBought = false;
+          }
+          applyUserData(res.data);
+        }
       })
       .catch(function() { SYNC_API_URL = ""; });
   }
@@ -1544,8 +1554,7 @@
         "<button type=\"button\" class=\"btn\" data-mall-minus=\"" + p.id + "\">－</button>" +
         "<span data-mall-qty=\"" + p.id + "\">" + mallQuantities[p.id] + "</span>" +
         "<button type=\"button\" class=\"btn\" data-mall-plus=\"" + p.id + "\">＋</button>" +
-        "</div>" +
-        "<button type=\"button\" class=\"btn mall-product-buy\" data-mall-buy=\"" + p.id + "\">购买</button>";
+        "</div>";
       list.appendChild(wrap);
     });
     list.querySelectorAll(".mall-product-img").forEach(function(el) {
@@ -1579,32 +1588,35 @@
         if (qEl) qEl.textContent = mallQuantities[pid];
       };
     });
-    list.querySelectorAll("[data-mall-buy]").forEach(function(btn) {
-      btn.onclick = function() {
-        var pid = btn.getAttribute("data-mall-buy");
-        var prod = MALL_PRODUCTS.filter(function(x) { return x.id === pid; })[0];
-        if (!prod) return;
-        var qty = mallQuantities[pid] || 0;
-        if (qty <= 0) return;
-        var total = prod.price * qty;
-        var coins = getNum(KEY.coins);
-        if (coins < total) {
-          var toast = document.getElementById("toastMallNotEnough");
-          if (toast) {
-            toast.classList.add("show");
-            setTimeout(function() { toast.classList.remove("show"); }, 500);
-          }
-          return;
+  }
+  var btnMallBuyEl = document.getElementById("btnMallBuy");
+  if (btnMallBuyEl) {
+    btnMallBuyEl.onclick = function() {
+      var total = 0;
+      MALL_PRODUCTS.forEach(function(p) {
+        total += p.price * (mallQuantities[p.id] || 0);
+      });
+      if (total <= 0) return;
+      var coins = getNum(KEY.coins);
+      if (coins < total) {
+        var toast = document.getElementById("toastMallNotEnough");
+        if (toast) {
+          toast.classList.add("show");
+          setTimeout(function() { toast.classList.remove("show"); }, 500);
         }
-        setNum(KEY.coins, coins - total);
-        mallQuantities[pid] = 0;
-        var qEl = list.querySelector("[data-mall-qty=\"" + pid + "\"]");
-        if (qEl) qEl.textContent = 0;
-        document.getElementById("mallCoins").textContent = getNum(KEY.coins);
-        refreshHeader();
-        syncToAccount();
-      };
-    });
+        return;
+      }
+      setNum(KEY.coins, coins - total);
+      mallJustBought = true;
+      MALL_PRODUCTS.forEach(function(p) {
+        mallQuantities[p.id] = 0;
+      });
+      renderMallProducts();
+      var mallCoinsEl = document.getElementById("mallCoins");
+      if (mallCoinsEl) mallCoinsEl.textContent = getNum(KEY.coins);
+      refreshHeader();
+      syncToAccount();
+    };
   }
   document.getElementById("btnMall").onclick = function() {
     document.getElementById("mallCoins").textContent = getNum(KEY.coins);
