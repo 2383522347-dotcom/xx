@@ -1656,20 +1656,10 @@
     };
   }
   document.getElementById("btnMall").onclick = function() {
-    function showMall() {
-      document.getElementById("mallCoins").textContent = getNum(KEY.coins);
-      renderMallProducts();
-      updateMallTotal();
-      document.getElementById("modalMall").classList.remove("hide");
-    }
-    if (SYNC_API_URL && getAccount().username) {
-      syncFromServer(function(ok, hadData) {
-        refreshHeader();
-        showMall();
-      });
-    } else {
-      showMall();
-    }
+    document.getElementById("mallCoins").textContent = getNum(KEY.coins);
+    renderMallProducts();
+    updateMallTotal();
+    document.getElementById("modalMall").classList.remove("hide");
   };
   document.getElementById("modalMallClose").onclick = function() { document.getElementById("modalMall").classList.add("hide"); };
   document.getElementById("modalProductCardClose").onclick = function() { document.getElementById("modalProductCard").classList.add("hide"); };
