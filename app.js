@@ -1538,6 +1538,14 @@
 
   // 签到、商城、账户
   document.getElementById("btnSignIn").onclick = doSignIn;
+  function updateMallTotal() {
+    var total = 0;
+    MALL_PRODUCTS.forEach(function(p) {
+      total += p.price * (parseInt(mallQuantities[p.id], 10) || 0);
+    });
+    var el = document.getElementById("mallTotalPriceVal");
+    if (el) el.textContent = total;
+  }
   function renderMallProducts() {
     var list = document.getElementById("mallProductList");
     if (!list) return;
@@ -1577,6 +1585,7 @@
         mallQuantities[pid] = (mallQuantities[pid] || 0) + 1;
         var qEl = list.querySelector("[data-mall-qty=\"" + pid + "\"]");
         if (qEl) qEl.textContent = mallQuantities[pid];
+        updateMallTotal();
       };
     });
     list.querySelectorAll("[data-mall-minus]").forEach(function(btn) {
@@ -1586,19 +1595,23 @@
         mallQuantities[pid] = n < 0 ? 0 : n;
         var qEl = list.querySelector("[data-mall-qty=\"" + pid + "\"]");
         if (qEl) qEl.textContent = mallQuantities[pid];
+        updateMallTotal();
       };
     });
+    updateMallTotal();
   }
   var btnMallBuyEl = document.getElementById("btnMallBuy");
   if (btnMallBuyEl) {
     btnMallBuyEl.onclick = function() {
-      var total = 0;
+      // 按当前勾选数量计算总价：每个商品 (单价 × 数量) 相加
+      var totalPrice = 0;
       MALL_PRODUCTS.forEach(function(p) {
-        total += p.price * (mallQuantities[p.id] || 0);
+        var qty = parseInt(mallQuantities[p.id], 10) || 0;
+        totalPrice += p.price * qty;
       });
-      if (total <= 0) return;
-      var coins = getNum(KEY.coins);
-      if (coins < total) {
+      if (totalPrice <= 0) return;
+      var currentCoins = parseInt(getNum(KEY.coins), 10) || 0;
+      if (currentCoins < totalPrice) {
         var toast = document.getElementById("toastMallNotEnough");
         if (toast) {
           toast.classList.add("show");
@@ -1606,7 +1619,7 @@
         }
         return;
       }
-      setNum(KEY.coins, coins - total);
+      setNum(KEY.coins, currentCoins - totalPrice);
       mallJustBought = true;
       MALL_PRODUCTS.forEach(function(p) {
         mallQuantities[p.id] = 0;
@@ -1621,6 +1634,7 @@
   document.getElementById("btnMall").onclick = function() {
     document.getElementById("mallCoins").textContent = getNum(KEY.coins);
     renderMallProducts();
+    updateMallTotal();
     document.getElementById("modalMall").classList.remove("hide");
   };
   document.getElementById("modalMallClose").onclick = function() { document.getElementById("modalMall").classList.add("hide"); };
