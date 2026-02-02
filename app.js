@@ -587,7 +587,6 @@
       var lastPurchase = parseInt(getStr(KEY.lastPurchaseTime), 10) || 0;
       if (lastPurchase && (Date.now() - lastPurchase) < 30000 && serverCoins > localCoins) {
         setNum(KEY.coins, localCoins);
-        setStr(KEY.lastPurchaseTime, "");
       } else {
         setNum(KEY.coins, Math.max(localCoins, serverCoins));
         if (lastPurchase) setStr(KEY.lastPurchaseTime, "");
