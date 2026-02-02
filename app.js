@@ -585,8 +585,10 @@
       var localCoins = getNum(KEY.coins);
       var serverCoins = Math.max(0, parseInt(d.coins, 10) || 0);
       var lastPurchase = parseInt(getStr(KEY.lastPurchaseTime), 10) || 0;
-      if (lastPurchase && (Date.now() - lastPurchase) < 30000 && serverCoins > localCoins) {
+      var withinPurchaseProtection = lastPurchase && (Date.now() - lastPurchase) < 60000 && serverCoins > localCoins;
+      if (withinPurchaseProtection) {
         setNum(KEY.coins, localCoins);
+        syncToAccount();
       } else {
         setNum(KEY.coins, Math.max(localCoins, serverCoins));
         if (lastPurchase) setStr(KEY.lastPurchaseTime, "");
