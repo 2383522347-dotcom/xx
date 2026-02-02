@@ -128,6 +128,26 @@
     .test-result-item.wrong { color: #c45c4a; }
     .coins { color: var(--gold); font-weight: 600; transition: color 0.25s var(--ease); }
     .hide { display: none !important; }
+    /* 商城商品卡片 */
+    .mall-product { background: var(--bg-soft); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); }
+    .mall-product-img { width: 80px; height: 80px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer; margin-bottom: 8px; transition: transform 0.2s var(--ease); }
+    .mall-product-img:hover { transform: scale(1.05); }
+    .mall-product-name { font-weight: 600; margin-bottom: 4px; }
+    .mall-product-price { font-size: 13px; color: var(--gold); margin-bottom: 10px; }
+    .mall-product-qty { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; }
+    .mall-product-qty .btn { padding: 6px 14px; min-height: 36px; min-width: 36px; }
+    .mall-product-qty span { min-width: 28px; text-align: center; font-weight: 600; }
+    .mall-product-buy { display: block; width: 100%; text-align: center; }
+    /* 资料卡弹窗 */
+    .product-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; gap: 16px; }
+    .product-card-img { width: 100px; height: 100px; border-radius: var(--radius); background: var(--bg-soft); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 48px; flex-shrink: 0; }
+    .product-card-meta { flex: 1; text-align: right; }
+    .product-card-meta .coins { font-size: 18px; }
+    .product-card-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .product-card-section h4 { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+    /* 金币不足提示 */
+    .toast-mall { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 14px 24px; border-radius: var(--radius); z-index: 1100; font-size: 14px; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; }
+    .toast-mall.show { opacity: 1; visibility: visible; }
     /* 测试答题：单词卡 + 进度 */
     .test-do-progress { text-align: center; margin-bottom: 16px; font-size: 14px; color: var(--text-muted); transition: color 0.25s var(--ease); }
     .test-do-progress strong { color: var(--text); transition: color 0.25s var(--ease); }
@@ -441,6 +461,15 @@
       </div>
     </div>
 
+    <!-- 遗忘复习完毕：展示金币并点击/2秒返回已学习单词 -->
+    <div id="pageForgetReviewDone" class="page" style="display:flex;align-items:center;justify-content:center;min-height:60vh;cursor:pointer;">
+      <div class="main" style="text-align:center;padding:32px;">
+        <p style="font-size:18px;margin-bottom:16px;color:var(--text);">复习完毕</p>
+        <p style="font-size:24px;font-weight:600;color:var(--gold);margin-bottom:24px;"><span id="forgetReviewDoneCoins">0</span> 金币已到账</p>
+        <p style="font-size:13px;color:var(--text-muted);">点击任意处返回已学习单词 · 2 秒后自动返回</p>
+      </div>
+    </div>
+
     <!-- 情景对话 -->
     <div id="pageScenario" class="page">
       <div class="top-bar">
@@ -597,13 +626,38 @@
 
   <!-- 商城弹窗 -->
   <div id="modalMall" class="modal-overlay hide">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width:420px;">
       <button type="button" class="modal-close" id="modalMallClose">×</button>
       <h3>商城</h3>
       <p>我的金币：<strong class="coins" id="mallCoins">0</strong></p>
-      <p style="color:var(--text-muted);font-size:13px;">商品敬请期待。</p>
+      <div id="mallProductList"></div>
     </div>
   </div>
+
+  <!-- 商品资料卡弹窗 -->
+  <div id="modalProductCard" class="modal-overlay hide">
+    <div class="modal-box" style="max-width:380px;">
+      <button type="button" class="modal-close" id="modalProductCardClose">返回</button>
+      <div class="product-card-header">
+        <div class="product-card-img" id="productCardImg">—</div>
+        <div class="product-card-meta">
+          <p class="coins" id="productCardCoins">0 金币</p>
+          <p style="font-size:13px;color:var(--text-muted);">成熟度 <span id="productCardMaturity">0/0</span></p>
+        </div>
+      </div>
+      <div class="product-card-section">
+        <h4>功能</h4>
+        <p id="productCardFunc" style="font-size:14px;">—</p>
+      </div>
+      <div class="product-card-section">
+        <h4>描述</h4>
+        <p id="productCardDesc" style="font-size:14px;line-height:1.5;">—</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 金币不足提示（0.5秒后自动消失） -->
+  <div id="toastMallNotEnough" class="toast-mall">金币数量不够</div>
 
   <!-- 搜索/翻译弹窗 -->
   <div id="modalSearch" class="modal-overlay hide">

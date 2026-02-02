@@ -199,6 +199,13 @@
     "哈佛": WORD_BOOK_HARVARD
   };
 
+  // 商城商品：id, name, price, desc, maturityMax, img(展示用), func(功能)
+  const MALL_PRODUCTS = [
+    { id: "wheat_seed", name: "小麦种子", price: 10, desc: "还没想好", maturityMax: 5, img: "🌾", func: "种植" },
+    { id: "watermelon_seed", name: "西瓜种子", price: 15, desc: "还没想好", maturityMax: 6, img: "🍉", func: "种植" }
+  ];
+  var mallQuantities = {};
+
   function fillWordBookSelect(selectId) {
     const sel = document.getElementById(selectId);
     if (!sel) return;
@@ -1062,15 +1069,26 @@
     }
   };
 
+  var forgetReviewDoneTimer = null;
   document.getElementById("btnFinishForgetReview").onclick = function() {
     var days = getNum(KEY.forgetReviewDays) + 1;
+    var coinsEarned = 50 * days;
     setNum(KEY.forgetReviewDays, days);
-    setNum(KEY.coins, getNum(KEY.coins) + 50 * days);
+    setNum(KEY.coins, getNum(KEY.coins) + coinsEarned);
     setStr(KEY.lastForgetReview, todayStr());
     refreshHeader();
     syncToAccount();
+    document.getElementById("forgetReviewDoneCoins").textContent = coinsEarned;
+    showPage("pageForgetReviewDone");
+    if (forgetReviewDoneTimer) clearTimeout(forgetReviewDoneTimer);
+    forgetReviewDoneTimer = setTimeout(function() {
+      forgetReviewDoneTimer = null;
+      showPage("pageLearned");
+    }, 2000);
+  };
+  document.getElementById("pageForgetReviewDone").onclick = function() {
+    if (forgetReviewDoneTimer) { clearTimeout(forgetReviewDoneTimer); forgetReviewDoneTimer = null; }
     showPage("pageLearned");
-    alert("复习完成！获得 " + (50 * days) + " 金币");
   };
 
   document.getElementById("btnBackFromForgetReviewDo").onclick = function() {
@@ -1510,11 +1528,90 @@
 
   // 签到、商城、账户
   document.getElementById("btnSignIn").onclick = doSignIn;
+  function renderMallProducts() {
+    var list = document.getElementById("mallProductList");
+    if (!list) return;
+    list.innerHTML = "";
+    MALL_PRODUCTS.forEach(function(p) {
+      if (mallQuantities[p.id] == null) mallQuantities[p.id] = 0;
+      var wrap = document.createElement("div");
+      wrap.className = "mall-product";
+      wrap.innerHTML =
+        "<div class=\"mall-product-img\" data-product-id=\"" + p.id + "\" title=\"点击查看资料卡\">" + (p.img || "📦") + "</div>" +
+        "<div class=\"mall-product-name\">" + p.name + "</div>" +
+        "<div class=\"mall-product-price\">" + p.price + " 金币/个</div>" +
+        "<div class=\"mall-product-qty\">" +
+        "<button type=\"button\" class=\"btn\" data-mall-minus=\"" + p.id + "\">－</button>" +
+        "<span data-mall-qty=\"" + p.id + "\">" + mallQuantities[p.id] + "</span>" +
+        "<button type=\"button\" class=\"btn\" data-mall-plus=\"" + p.id + "\">＋</button>" +
+        "</div>" +
+        "<button type=\"button\" class=\"btn mall-product-buy\" data-mall-buy=\"" + p.id + "\">购买</button>";
+      list.appendChild(wrap);
+    });
+    list.querySelectorAll(".mall-product-img").forEach(function(el) {
+      el.onclick = function() {
+        var pid = el.getAttribute("data-product-id");
+        var prod = MALL_PRODUCTS.filter(function(x) { return x.id === pid; })[0];
+        if (!prod) return;
+        document.getElementById("productCardImg").textContent = prod.img || "📦";
+        document.getElementById("productCardCoins").textContent = prod.price + " 金币";
+        document.getElementById("productCardMaturity").textContent = "0/" + prod.maturityMax;
+        document.getElementById("productCardFunc").textContent = prod.func || "—";
+        document.getElementById("productCardDesc").textContent = prod.desc || "—";
+        document.getElementById("modalProductCard").classList.remove("hide");
+      };
+    });
+    list.querySelectorAll("[data-mall-plus]").forEach(function(btn) {
+      btn.onclick = function() {
+        var pid = btn.getAttribute("data-mall-plus");
+        mallQuantities[pid] = (mallQuantities[pid] || 0) + 1;
+        var qEl = list.querySelector("[data-mall-qty=\"" + pid + "\"]");
+        if (qEl) qEl.textContent = mallQuantities[pid];
+      };
+    });
+    list.querySelectorAll("[data-mall-minus]").forEach(function(btn) {
+      btn.onclick = function() {
+        var pid = btn.getAttribute("data-mall-minus");
+        var n = (mallQuantities[pid] || 0) - 1;
+        mallQuantities[pid] = n < 0 ? 0 : n;
+        var qEl = list.querySelector("[data-mall-qty=\"" + pid + "\"]");
+        if (qEl) qEl.textContent = mallQuantities[pid];
+      };
+    });
+    list.querySelectorAll("[data-mall-buy]").forEach(function(btn) {
+      btn.onclick = function() {
+        var pid = btn.getAttribute("data-mall-buy");
+        var prod = MALL_PRODUCTS.filter(function(x) { return x.id === pid; })[0];
+        if (!prod) return;
+        var qty = mallQuantities[pid] || 0;
+        if (qty <= 0) return;
+        var total = prod.price * qty;
+        var coins = getNum(KEY.coins);
+        if (coins < total) {
+          var toast = document.getElementById("toastMallNotEnough");
+          if (toast) {
+            toast.classList.add("show");
+            setTimeout(function() { toast.classList.remove("show"); }, 500);
+          }
+          return;
+        }
+        setNum(KEY.coins, coins - total);
+        mallQuantities[pid] = 0;
+        var qEl = list.querySelector("[data-mall-qty=\"" + pid + "\"]");
+        if (qEl) qEl.textContent = 0;
+        document.getElementById("mallCoins").textContent = getNum(KEY.coins);
+        refreshHeader();
+        syncToAccount();
+      };
+    });
+  }
   document.getElementById("btnMall").onclick = function() {
     document.getElementById("mallCoins").textContent = getNum(KEY.coins);
+    renderMallProducts();
     document.getElementById("modalMall").classList.remove("hide");
   };
   document.getElementById("modalMallClose").onclick = function() { document.getElementById("modalMall").classList.add("hide"); };
+  document.getElementById("modalProductCardClose").onclick = function() { document.getElementById("modalProductCard").classList.add("hide"); };
 
   document.getElementById("btnAccount").onclick = function() {
     const acc = getAccount();
