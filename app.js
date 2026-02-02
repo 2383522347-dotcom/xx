@@ -207,6 +207,7 @@
   ];
   var mallQuantities = {};
   var mallJustBought = false;
+  var lastPurchaseTime = 0;
 
   function fillWordBookSelect(selectId) {
     const sel = document.getElementById(selectId);
@@ -582,7 +583,12 @@
     if (d.coins !== undefined) {
       var localCoins = getNum(KEY.coins);
       var serverCoins = Math.max(0, parseInt(d.coins, 10) || 0);
-      setNum(KEY.coins, Math.max(localCoins, serverCoins));
+      if (lastPurchaseTime && (Date.now() - lastPurchaseTime) < 12000 && serverCoins > localCoins) {
+        setNum(KEY.coins, localCoins);
+        lastPurchaseTime = 0;
+      } else {
+        setNum(KEY.coins, Math.max(localCoins, serverCoins));
+      }
     }
     if (d.learnedWords && Array.isArray(d.learnedWords)) {
       var localWords = getJSON(KEY.learnedWords, []);
@@ -1575,18 +1581,7 @@
       list.appendChild(wrap);
     });
     list.querySelectorAll(".mall-product-img").forEach(function(el) {
-      el.onclick = function() {
-        var pid = el.getAttribute("data-product-id");
-        var prod = MALL_PRODUCTS.filter(function(x) { return x.id === pid; })[0];
-        if (!prod) return;
-        document.getElementById("productCardName").textContent = prod.name || "—";
-        document.getElementById("productCardImg").textContent = prod.img || "📦";
-        document.getElementById("productCardCoins").textContent = prod.price;
-        document.getElementById("productCardMaturity").textContent = "0/" + prod.maturityMax;
-        document.getElementById("productCardFunc").textContent = prod.func || "—";
-        document.getElementById("productCardDesc").textContent = prod.desc || "—";
-        document.getElementById("modalProductCard").classList.remove("hide");
-      };
+      el.onclick = function() { openProductCard(el.getAttribute("data-product-id")); };
     });
     list.querySelectorAll("[data-mall-plus]").forEach(function(btn) {
       btn.onclick = function() {
@@ -1612,16 +1607,17 @@
   var btnMallBuyEl = document.getElementById("btnMallBuy");
   if (btnMallBuyEl) {
     btnMallBuyEl.onclick = function() {
-      // 总价 = 所有商品 (单价 × 数量) 之和，必须为有效数字
+      var list = document.getElementById("mallProductList");
+      if (!list) return;
       var totalPrice = 0;
       MALL_PRODUCTS.forEach(function(p) {
-        var qty = parseInt(mallQuantities[p.id], 10) || 0;
+        var qtyEl = list.querySelector("[data-mall-qty=\"" + p.id + "\"]");
+        var qty = parseInt(qtyEl ? qtyEl.textContent : "0", 10) || 0;
         var price = Number(p.price);
-        if (!isNaN(price) && !isNaN(qty)) totalPrice += price * qty;
+        if (!isNaN(price) && qty >= 0) totalPrice += price * qty;
       });
       totalPrice = Number(totalPrice);
       if (isNaN(totalPrice) || totalPrice <= 0) return;
-      // 当前金币：直接从 localStorage 读，确保是数字
       var rawCoins = localStorage.getItem(KEY.coins);
       var currentCoins = (rawCoins !== null && rawCoins !== "") ? parseInt(rawCoins, 10) : 0;
       if (isNaN(currentCoins)) currentCoins = 0;
@@ -1635,10 +1631,12 @@
       }
       var afterCoins = Math.max(0, currentCoins - totalPrice);
       setNum(KEY.coins, afterCoins);
+      lastPurchaseTime = Date.now();
       mallJustBought = true;
       var backpack = getJSON(KEY.mallBackpack, {});
       MALL_PRODUCTS.forEach(function(p) {
-        var qty = parseInt(mallQuantities[p.id], 10) || 0;
+        var qtyEl = list.querySelector("[data-mall-qty=\"" + p.id + "\"]");
+        var qty = parseInt(qtyEl ? qtyEl.textContent : "0", 10) || 0;
         if (qty > 0) {
           backpack[p.id] = (parseInt(backpack[p.id], 10) || 0) + qty;
         }
@@ -1661,6 +1659,17 @@
   };
   document.getElementById("modalMallClose").onclick = function() { document.getElementById("modalMall").classList.add("hide"); };
   document.getElementById("modalProductCardClose").onclick = function() { document.getElementById("modalProductCard").classList.add("hide"); };
+  function openProductCard(productId) {
+    var prod = MALL_PRODUCTS.filter(function(x) { return x.id === productId; })[0];
+    if (!prod) return;
+    document.getElementById("productCardName").textContent = prod.name || "—";
+    document.getElementById("productCardImg").textContent = prod.img || "📦";
+    document.getElementById("productCardCoins").textContent = prod.price;
+    document.getElementById("productCardMaturity").textContent = "0/" + prod.maturityMax;
+    document.getElementById("productCardFunc").textContent = prod.func || "—";
+    document.getElementById("productCardDesc").textContent = prod.desc || "—";
+    document.getElementById("modalProductCard").classList.remove("hide");
+  }
   function renderBackpack() {
     var list = document.getElementById("backpackList");
     if (!list) return;
@@ -1671,7 +1680,7 @@
       var qty = parseInt(backpack[p.id], 10) || 0;
       if (qty <= 0) return;
       hasAny = true;
-      html += "<div class=\"backpack-item\">" +
+      html += "<div class=\"backpack-item\" data-product-id=\"" + p.id + "\">" +
         "<div class=\"backpack-item-img\">" + (p.img || "📦") + "</div>" +
         "<div class=\"backpack-item-info\">" +
         "<div class=\"backpack-item-name\">" + p.name + "</div>" +
@@ -1679,6 +1688,9 @@
         "</div></div>";
     });
     list.innerHTML = hasAny ? html : "<p style=\"color:var(--text-muted);padding:16px;text-align:center;\">暂无商品</p>";
+    list.querySelectorAll(".backpack-item[data-product-id]").forEach(function(el) {
+      el.onclick = function() { openProductCard(el.getAttribute("data-product-id")); };
+    });
   }
   document.getElementById("btnMallBackpack").onclick = function() {
     renderBackpack();

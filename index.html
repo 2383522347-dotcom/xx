@@ -152,7 +152,8 @@
     .product-card-section { margin-top: 14px; padding: 12px 14px; background: var(--bg-soft); border-radius: 8px; border: 1px solid var(--border); }
     .product-card-section h4 { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; }
     .product-card-section p { font-size: 14px; line-height: 1.55; margin: 0; color: var(--text); }
-    .backpack-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .backpack-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s var(--ease); }
+    .backpack-item:hover { background: var(--bg-soft); }
     .backpack-item:last-child { border-bottom: none; }
     .backpack-item-img { width: 48px; height: 48px; border-radius: 8px; background: var(--bg-soft); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
     .backpack-item-info { flex: 1; }
@@ -685,7 +686,7 @@
     <div class="modal-box" style="max-width:400px;">
       <button type="button" class="modal-close" id="modalBackpackClose">×</button>
       <h3>背包</h3>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">已拥有的商品（三端同步）</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">已拥有的商品</p>
       <div id="backpackList"></div>
     </div>
   </div>
