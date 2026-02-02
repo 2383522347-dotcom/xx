@@ -17,7 +17,8 @@
     blacklist: "mech_blacklist",
     learnedCount: "mech_learnedCount",
     wordLearnCount: "mech_wordLearnCount",
-    mallBackpack: "mech_mallBackpack"
+    mallBackpack: "mech_mallBackpack",
+    lastPurchaseTime: "mech_lastPurchaseTime"
   };
 
   function getNum(k, def) {
@@ -207,7 +208,6 @@
   ];
   var mallQuantities = {};
   var mallJustBought = false;
-  var lastPurchaseTime = 0;
 
   function fillWordBookSelect(selectId) {
     const sel = document.getElementById(selectId);
@@ -518,6 +518,7 @@
     forgetReviewWords = [];
     forgetReviewIndex = 0;
     setJSON(KEY.mallBackpack, {});
+    setStr(KEY.lastPurchaseTime, "");
   }
 
   function buildUserData() {
@@ -583,11 +584,13 @@
     if (d.coins !== undefined) {
       var localCoins = getNum(KEY.coins);
       var serverCoins = Math.max(0, parseInt(d.coins, 10) || 0);
-      if (lastPurchaseTime && (Date.now() - lastPurchaseTime) < 12000 && serverCoins > localCoins) {
+      var lastPurchase = parseInt(getStr(KEY.lastPurchaseTime), 10) || 0;
+      if (lastPurchase && (Date.now() - lastPurchase) < 15000 && serverCoins > localCoins) {
         setNum(KEY.coins, localCoins);
-        lastPurchaseTime = 0;
+        setStr(KEY.lastPurchaseTime, "");
       } else {
         setNum(KEY.coins, Math.max(localCoins, serverCoins));
+        if (lastPurchase) setStr(KEY.lastPurchaseTime, "");
       }
     }
     if (d.learnedWords && Array.isArray(d.learnedWords)) {
@@ -1631,7 +1634,7 @@
       }
       var afterCoins = Math.max(0, currentCoins - totalPrice);
       setNum(KEY.coins, afterCoins);
-      lastPurchaseTime = Date.now();
+      setStr(KEY.lastPurchaseTime, String(Date.now()));
       mallJustBought = true;
       var backpack = getJSON(KEY.mallBackpack, {});
       MALL_PRODUCTS.forEach(function(p) {
