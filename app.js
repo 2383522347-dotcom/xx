@@ -394,7 +394,12 @@
 
   function normalizeForAnswer(s) {
     if (!s || !String(s).trim()) return "";
-    var t = String(s).replace(/\s+/g, " ").trim();
+    var t = String(s)
+      .replace(/\s+/g, " ")           // 先合并空白
+      .replace(/[\uFF08\uFF09]/g, function(m) { return m === "\uFF08" ? "(" : ")"; })  // 全角括号→半角
+      .replace(/\s*\(\s*/g, "(")      // 括号内侧空格去掉
+      .replace(/\s*\)\s*/g, ")")
+      .trim();
     return /[a-zA-Z]/.test(t) ? t.toLowerCase() : t;
   }
 
