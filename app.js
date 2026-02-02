@@ -1652,7 +1652,18 @@
       if (mallCoinsEl) mallCoinsEl.textContent = afterCoins;
       refreshHeader();
       syncToAccount();
-      syncToServerNow();
+      var acc = getAccount();
+      if (SYNC_API_URL && acc.username && acc.password) {
+        fetch(SYNC_API_URL + "/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: acc.username, password: acc.password, data: buildUserData() })
+        }).then(function(r) { return r.ok ? r.json() : null; }).then(function(res) {
+          if (res && res.data) applyUserData(res.data);
+          refreshHeader();
+          if (mallCoinsEl) mallCoinsEl.textContent = getNum(KEY.coins);
+        }).catch(function() {});
+      }
     };
   }
   document.getElementById("btnMall").onclick = function() {
