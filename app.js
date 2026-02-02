@@ -1553,8 +1553,9 @@
         var pid = el.getAttribute("data-product-id");
         var prod = MALL_PRODUCTS.filter(function(x) { return x.id === pid; })[0];
         if (!prod) return;
+        document.getElementById("productCardName").textContent = prod.name || "—";
         document.getElementById("productCardImg").textContent = prod.img || "📦";
-        document.getElementById("productCardCoins").textContent = prod.price + " 金币";
+        document.getElementById("productCardCoins").textContent = prod.price;
         document.getElementById("productCardMaturity").textContent = "0/" + prod.maturityMax;
         document.getElementById("productCardFunc").textContent = prod.func || "—";
         document.getElementById("productCardDesc").textContent = prod.desc || "—";

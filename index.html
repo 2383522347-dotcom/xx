@@ -138,13 +138,20 @@
     .mall-product-qty .btn { padding: 6px 14px; min-height: 36px; min-width: 36px; }
     .mall-product-qty span { min-width: 28px; text-align: center; font-weight: 600; }
     .mall-product-buy { display: block; width: 100%; text-align: center; }
-    /* 资料卡弹窗 */
-    .product-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; gap: 16px; }
-    .product-card-img { width: 100px; height: 100px; border-radius: var(--radius); background: var(--bg-soft); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 48px; flex-shrink: 0; }
-    .product-card-meta { flex: 1; text-align: right; }
-    .product-card-meta .coins { font-size: 18px; }
-    .product-card-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
-    .product-card-section h4 { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+    /* 资料卡弹窗（与游戏内资料卡一致） */
+    .product-card-box { max-width: 360px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .product-card-box .modal-close { position: absolute; top: 12px; right: 12px; margin: 0; }
+    .product-card-title { font-size: 16px; font-weight: 600; margin-bottom: 14px; padding-right: 28px; }
+    .product-card-header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; padding: 14px; background: var(--bg-soft); border-radius: 10px; border: 1px solid var(--border); }
+    .product-card-img { width: 72px; height: 72px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 40px; flex-shrink: 0; box-shadow: inset 0 1px 2px rgba(0,0,0,0.04); }
+    .product-card-meta { flex: 1; min-width: 0; }
+    .product-card-meta .product-card-row { display: flex; align-items: center; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
+    .product-card-meta .product-card-row:last-child { margin-bottom: 0; }
+    .product-card-meta .coins { font-size: 16px; color: var(--gold); }
+    .product-card-meta .maturity-label { color: var(--text-muted); }
+    .product-card-section { margin-top: 14px; padding: 12px 14px; background: var(--bg-soft); border-radius: 8px; border: 1px solid var(--border); }
+    .product-card-section h4 { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; }
+    .product-card-section p { font-size: 14px; line-height: 1.55; margin: 0; color: var(--text); }
     /* 金币不足提示 */
     .toast-mall { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 14px 24px; border-radius: var(--radius); z-index: 1100; font-size: 14px; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; }
     .toast-mall.show { opacity: 1; visibility: visible; }
@@ -634,24 +641,31 @@
     </div>
   </div>
 
-  <!-- 商品资料卡弹窗 -->
+  <!-- 商品资料卡弹窗（与游戏内资料卡一致） -->
   <div id="modalProductCard" class="modal-overlay hide">
-    <div class="modal-box" style="max-width:380px;">
+    <div class="modal-box product-card-box">
       <button type="button" class="modal-close" id="modalProductCardClose">×</button>
+      <h3 class="product-card-title" id="productCardName">—</h3>
       <div class="product-card-header">
         <div class="product-card-img" id="productCardImg">—</div>
         <div class="product-card-meta">
-          <p class="coins" id="productCardCoins">0 金币</p>
-          <p style="font-size:13px;color:var(--text-muted);">成熟度 <span id="productCardMaturity">0/0</span></p>
+          <div class="product-card-row">
+            <span class="maturity-label">金币</span>
+            <span class="coins" id="productCardCoins">0</span>
+          </div>
+          <div class="product-card-row">
+            <span class="maturity-label">成熟度</span>
+            <span id="productCardMaturity">0/0</span>
+          </div>
         </div>
       </div>
       <div class="product-card-section">
         <h4>功能</h4>
-        <p id="productCardFunc" style="font-size:14px;">—</p>
+        <p id="productCardFunc">—</p>
       </div>
       <div class="product-card-section">
         <h4>描述</h4>
-        <p id="productCardDesc" style="font-size:14px;line-height:1.5;">—</p>
+        <p id="productCardDesc">—</p>
       </div>
     </div>
   </div>
