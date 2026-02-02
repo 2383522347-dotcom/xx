@@ -1679,8 +1679,6 @@
         syncToAccount();
         refreshHeader();
         enterApp();
-        var msg = (data && Object.keys(data).length > 0) ? "登录成功，数据已从云端恢复（任意设备同账号一致）" : "登录成功，数据将实时同步到云端。";
-        alert(msg);
       });
     } else {
       const accounts = getAccounts();
